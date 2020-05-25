@@ -101,10 +101,10 @@ public class CloudEventSerializer extends StdSerializer<CloudEvent> {
     @Override
     public void serialize(CloudEvent value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("specversion", value.getAttributes().getSpecVersion().toString());
+        gen.writeStringField("specversion", value.getSpecVersion().toString());
 
         // Serialize attributes
-        AttributesInternal attributesInternal = (AttributesInternal) value.getAttributes();
+        AttributesInternal attributesInternal = ((CloudEventImpl) value).getAttributes();
         try {
             attributesInternal.visitAttributes(new AttributesSerializer(gen));
         } catch (RuntimeException e) {

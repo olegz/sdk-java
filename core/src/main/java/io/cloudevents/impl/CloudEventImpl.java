@@ -19,10 +19,13 @@ package io.cloudevents.impl;
 
 import io.cloudevents.Attributes;
 import io.cloudevents.CloudEvent;
+import io.cloudevents.SpecVersion;
 import io.cloudevents.format.EventFormat;
 import io.cloudevents.message.*;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public final class CloudEventImpl implements CloudEvent, BinaryMessage, BinaryMessageExtensions {
@@ -39,22 +42,91 @@ public final class CloudEventImpl implements CloudEvent, BinaryMessage, BinaryMe
     }
 
     @Override
-    public Attributes getAttributes() {
-        return attributes;
+    public SpecVersion getSpecVersion() {
+        return this.attributes.getSpecVersion();
     }
+
+    @Override
+    public String getId() {
+        return this.attributes.getId();
+    }
+
+    @Override
+    public String getType() {
+        return this.attributes.getType();
+    }
+
+    @Override
+    public URI getSource() {
+        return this.attributes.getSource();
+    }
+
+    @Override
+    public String getDataContentType() {
+        return this.attributes.getDataContentType();
+    }
+
+    @Override
+    public URI getDataSchema() {
+        return this.attributes.getDataSchema();
+    }
+
+    @Override
+    public String getSubject() {
+        return this.attributes.getSubject();
+    }
+
+    @Override
+    public ZonedDateTime getTime() {
+        return this.attributes.getTime();
+    }
+
+    @Override
+    public Object getAttribute(String extensionName) {
+        throw new UnsupportedOperationException("Temporary not supported. Use individual methods for specific attributes.");
+    }
+
+    @Override
+    public Set<String> getAttributeNames() {
+        throw new UnsupportedOperationException("Temporary not supported.");
+    }
+
+    @Override
+    public Object getExtension(String extensionName) {
+        return this.extensions.get(extensionName);
+    }
+
+    @Override
+    public Set<String> getExtensionNames() {
+        return this.extensions.keySet();
+    }
+
+    public Map<String, Object> getExtensions() {
+        return this.extensions;
+    }
+
+    public AttributesInternal getAttributes() {
+        return this.attributes;
+    }
+
+//    @Override
+//    public <V extends BinaryMessageVisitor<R>, R> R visit(BinaryMessageVisitorFactory<V, R> visitorFactory)
+//            throws MessageVisitException, IllegalStateException {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
     @Override
     public byte[] getData() {
         return this.data;
     }
 
-    @Override
-    public Map<String, Object> getExtensions() {
-        return Collections.unmodifiableMap(extensions);
-    }
-
-    @Override
-    public CloudEvent toV03() {
+//    @Override
+//    public Map<String, Object> getExtensions() {
+//        return Collections.unmodifiableMap(extensions);
+//    }
+//
+    public CloudEventImpl toV03() {
         return new CloudEventImpl(
             attributes.toV03(),
             data,
@@ -62,17 +134,16 @@ public final class CloudEventImpl implements CloudEvent, BinaryMessage, BinaryMe
         );
     }
 
-    @Override
-    public CloudEvent toV1() {
+    public CloudEventImpl toV1() {
         return new CloudEventImpl(
             attributes.toV1(),
             data,
             extensions
         );
     }
-
-    // Message impl
-
+//
+//    // Message impl
+//
     public BinaryMessage asBinaryMessage() {
         return this;
     }

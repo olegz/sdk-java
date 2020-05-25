@@ -17,7 +17,7 @@
 
 package io.cloudevents.extensions;
 
-import io.cloudevents.CloudEvent;
+import io.cloudevents.CloudEventExtensions;
 import io.cloudevents.Extension;
 
 import java.util.Collections;
@@ -49,12 +49,12 @@ public final class DistributedTracingExtension implements Extension {
     }
 
     @Override
-    public void readFromEvent(CloudEvent event) {
-        Object tp = event.getExtensions().get(TRACEPARENT);
+    public void readFromEvent(CloudEventExtensions event) {
+        Object tp = event.getExtension(TRACEPARENT);
         if (tp != null) {
             this.traceparent = tp.toString();
         }
-        Object ts = event.getExtensions().get(TRACESTATE);
+        Object ts = event.getExtension(TRACESTATE);
         if (ts != null) {
             this.tracestate = ts.toString();
         }

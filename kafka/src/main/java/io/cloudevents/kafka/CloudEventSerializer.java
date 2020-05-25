@@ -20,6 +20,7 @@ package io.cloudevents.kafka;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.format.EventFormat;
 import io.cloudevents.format.EventFormatProvider;
+import io.cloudevents.impl.CloudEventImpl;
 import io.cloudevents.kafka.impl.KafkaSerializerMessageVisitorImpl;
 import io.cloudevents.message.Encoding;
 import org.apache.kafka.common.header.Headers;
@@ -83,9 +84,9 @@ public class CloudEventSerializer implements Serializer<CloudEvent> {
     @Override
     public byte[] serialize(String topic, Headers headers, CloudEvent data) {
         if (encoding == Encoding.STRUCTURED) {
-            return data.asStructuredMessage(this.format).visit(new KafkaSerializerMessageVisitorImpl(headers));
+            return ((CloudEventImpl) data).asStructuredMessage(this.format).visit(new KafkaSerializerMessageVisitorImpl(headers));
         } else {
-            return data.asBinaryMessage().visit(new KafkaSerializerMessageVisitorImpl(headers));
+            return ((CloudEventImpl) data).asBinaryMessage().visit(new KafkaSerializerMessageVisitorImpl(headers));
         }
     }
 }

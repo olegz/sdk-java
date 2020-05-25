@@ -19,6 +19,7 @@ package io.cloudevents.kafka;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.SpecVersion;
+import io.cloudevents.impl.CloudEventImpl;
 import io.cloudevents.kafka.impl.KafkaHeaders;
 import io.cloudevents.mock.CSVFormat;
 import io.cloudevents.types.Time;
@@ -49,7 +50,7 @@ public class KafkaProducerMessageVisitorTest {
         Long timestamp = System.currentTimeMillis();
         String key = "aaa";
 
-        ProducerRecord<String, byte[]> producerRecord = event
+        ProducerRecord<String, byte[]> producerRecord = ((CloudEventImpl) event)
             .asStructuredMessage(CSVFormat.INSTANCE)
             .visit(KafkaProducerMessageVisitor.create(topic, partition, timestamp, key));
 
@@ -75,7 +76,7 @@ public class KafkaProducerMessageVisitorTest {
         Long timestamp = System.currentTimeMillis();
         String key = "aaa";
 
-        ProducerRecord<String, byte[]> producerRecord = event
+        ProducerRecord<String, byte[]> producerRecord = ((CloudEventImpl) event)
             .asBinaryMessage()
             .visit(KafkaProducerMessageVisitor.create(topic, partition, timestamp, key));
 

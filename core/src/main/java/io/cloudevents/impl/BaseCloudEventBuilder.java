@@ -19,8 +19,10 @@ package io.cloudevents.impl;
 
 import io.cloudevents.Attributes;
 import io.cloudevents.CloudEvent;
+import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.Extension;
 import io.cloudevents.message.BinaryMessageVisitor;
+import io.cloudevents.message.BinaryMessageVisitorFactory;
 import io.cloudevents.message.MessageVisitException;
 
 import java.net.URI;
@@ -35,6 +37,35 @@ public abstract class BaseCloudEventBuilder<B extends BaseCloudEventBuilder<B, T
     private byte[] data;
     private Map<String, Object> extensions;
 
+    public static io.cloudevents.v1.CloudEventBuilder buildV1() {
+        return new io.cloudevents.v1.CloudEventBuilder();
+    }
+
+    public static io.cloudevents.v1.CloudEventBuilder buildV1(CloudEventImpl event) {
+        return new io.cloudevents.v1.CloudEventBuilder(event);
+    }
+
+    public static io.cloudevents.v03.CloudEventBuilder buildV03() {
+        return new io.cloudevents.v03.CloudEventBuilder();
+    }
+
+    public static io.cloudevents.v03.CloudEventBuilder buildV03(CloudEventImpl event) {
+        return new io.cloudevents.v03.CloudEventBuilder(event);
+    }
+
+    public static BinaryMessageVisitorFactory defaultBinaryMessageVisitorFactory() {
+        return specVersion -> {
+            switch (specVersion) {
+            case V1:
+                return BaseCloudEventBuilder.buildV1();
+            case V03:
+                return BaseCloudEventBuilder.buildV03();
+            default:
+                throw new IllegalStateException("Unrecognized spec version: " + specVersion);
+            }
+        };
+    }
+
     @SuppressWarnings("unchecked")
     public BaseCloudEventBuilder() {
         this.self = (B) this;
@@ -42,11 +73,13 @@ public abstract class BaseCloudEventBuilder<B extends BaseCloudEventBuilder<B, T
     }
 
     @SuppressWarnings("unchecked")
-    public BaseCloudEventBuilder(CloudEvent event) {
+    public BaseCloudEventBuilder(CloudEventImpl event) {
         this.self = (B) this;
 
-        CloudEventImpl ev = (CloudEventImpl) event;
-        this.setAttributes(ev.getAttributes());
+        CloudEventImpl ev = event;
+        this.setAttributes(ev.getAttributes()); // i don't think we need these anymore since we can get all that from CloudEvent
+        // itself as it is now a container for both Attributes ad Extensions
+
         this.data = ev.getData();
         this.extensions = new HashMap<>(ev.getExtensions());
     }
@@ -100,7 +133,7 @@ public abstract class BaseCloudEventBuilder<B extends BaseCloudEventBuilder<B, T
         return self;
     }
 
-    public CloudEvent build() {
+    public CloudEventImpl build() {
         return new CloudEventImpl(this.buildAttributes(), data, extensions);
     }
 

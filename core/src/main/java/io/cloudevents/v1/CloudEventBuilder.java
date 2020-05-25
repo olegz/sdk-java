@@ -20,6 +20,7 @@ package io.cloudevents.v1;
 import io.cloudevents.Attributes;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.impl.BaseCloudEventBuilder;
+import io.cloudevents.impl.CloudEventImpl;
 import io.cloudevents.message.MessageVisitException;
 import io.cloudevents.types.Time;
 
@@ -47,7 +48,7 @@ public final class CloudEventBuilder extends BaseCloudEventBuilder<CloudEventBui
         super();
     }
 
-    public CloudEventBuilder(CloudEvent event) {
+    public CloudEventBuilder(CloudEventImpl event) {
         super(event);
     }
 
@@ -79,11 +80,13 @@ public final class CloudEventBuilder extends BaseCloudEventBuilder<CloudEventBui
         return this;
     }
 
+    @Override
     public CloudEventBuilder withDataSchema(URI dataschema) {
         this.dataschema = dataschema;
         return this;
     }
 
+    @Override
     public CloudEventBuilder withDataContentType(
         String datacontenttype) {
         this.datacontenttype = datacontenttype;
@@ -101,6 +104,7 @@ public final class CloudEventBuilder extends BaseCloudEventBuilder<CloudEventBui
         return this;
     }
 
+    @Override
     protected AttributesImpl buildAttributes() {
         return new AttributesImpl(id, source, type, datacontenttype, dataschema, subject, time);
     }

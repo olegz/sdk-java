@@ -17,7 +17,7 @@
 
 package io.cloudevents.message;
 
-import io.cloudevents.CloudEvent;
+import io.cloudevents.impl.CloudEventImpl;
 import io.cloudevents.mock.CSVFormat;
 import io.cloudevents.mock.MockBinaryMessage;
 import io.cloudevents.mock.MockStructuredMessage;
@@ -35,7 +35,7 @@ public class EventMessageRoundtripTest {
      */
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#allEventsWithoutExtensions")
-    void structuredToEvent(CloudEvent input) {
+    void structuredToEvent(CloudEventImpl input) {
         assertThat(input.asStructuredMessage(CSVFormat.INSTANCE).toEvent())
             .isEqualTo(input);
     }
@@ -47,21 +47,21 @@ public class EventMessageRoundtripTest {
      */
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#allEventsWithoutExtensions")
-    void structuredToMockStructuredMessageToEvent(CloudEvent input) {
+    void structuredToMockStructuredMessageToEvent(CloudEventImpl input) {
         assertThat(input.asStructuredMessage(CSVFormat.INSTANCE).visit(new MockStructuredMessage()).toEvent())
             .isEqualTo(input);
     }
 
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#allEvents")
-    void binaryToEvent(CloudEvent input) {
+    void binaryToEvent(CloudEventImpl input) {
         assertThat(input.asBinaryMessage().toEvent())
             .isEqualTo(input);
     }
 
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#allEvents")
-    void binaryToMockBinaryMessageToEvent(CloudEvent input) {
+    void binaryToMockBinaryMessageToEvent(CloudEventImpl input) {
         assertThat(input.asBinaryMessage().visit(new MockBinaryMessage()).toEvent())
             .isEqualTo(input);
     }

@@ -16,8 +16,10 @@
  */
 package io.cloudevents.v1;
 
-import io.cloudevents.CloudEvent;
 import io.cloudevents.SpecVersion;
+import io.cloudevents.impl.BaseCloudEventBuilder;
+import io.cloudevents.impl.CloudEventImpl;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -31,16 +33,16 @@ public class CloudEventBuilderTest {
 
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#v1Events")
-    void testCopyWithBuilder(CloudEvent event) {
-        assertThat(CloudEvent.buildV1(event).build()).isEqualTo(event);
+    void testCopyWithBuilder(CloudEventImpl event) {
+        assertThat(BaseCloudEventBuilder.buildV1(event).build()).isEqualTo(event);
     }
 
     @ParameterizedTest()
     @MethodSource("io.cloudevents.test.Data#v1Events")
-    void testToV03(CloudEvent event) {
-        CloudEvent eventV03 = CloudEvent.buildV03(event).build();
+    void testToV03(CloudEventImpl event) {
+        CloudEventImpl eventV03 = BaseCloudEventBuilder.buildV03(event).build();
 
-        assertThat(eventV03.getAttributes().getSpecVersion())
+        assertThat(eventV03.getSpecVersion())
             .isEqualTo(SpecVersion.V03);
 
         assertThat(eventV03).isEqualTo(event.toV03());

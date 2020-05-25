@@ -21,7 +21,7 @@ import java.util.Map;
 
 public interface Extension {
 
-    void readFromEvent(CloudEvent event);
+    void readFromEvent(CloudEventExtensions event);
 
     Map<String, Object> asMap();
 
