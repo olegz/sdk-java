@@ -21,6 +21,7 @@ import java.util.Map;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.CloudEventAttributesProvider;
 import io.cloudevents.spring.core.SpringCloudEventAttributes;
 
 import org.springframework.messaging.Message;
@@ -54,7 +55,7 @@ public final class CloudEventMessageUtils {
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
 
 		Map<String, Object> headers = inputMessage.getHeaders();
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(headers);
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(headers);
 
 		// first check the obvious and see if content-type is `cloudevents`
 		if (!attributes.isValidCloudEvent() && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
@@ -85,6 +86,17 @@ public final class CloudEventMessageUtils {
 		return inputMessage;
 	}
 
+	/**
+	 * Typically called by Consumer.
+	 * 
+	 */
+	public static SpringCloudEventAttributes generateAttributes(Message<?> message,
+			CloudEventAttributesProvider provider) {
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
+				.setType(message.getPayload().getClass().getName().getClass().getName());
+		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
+	}
+
 	private static Message<?> buildCeMessageFromStructured(Map<String, Object> structuredCloudEvent,
 			MessageHeaders originalHeaders) {
 		Object data = null;
@@ -103,7 +115,7 @@ public final class CloudEventMessageUtils {
 		}
 		Assert.notNull(data, "'data' must not be null");
 		MessageBuilder<?> builder = MessageBuilder.withPayload(data);
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(structuredCloudEvent);
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(structuredCloudEvent);
 		String prefixToUse = CloudEventAttributeUtils.determinePrefixToUse(originalHeaders);
 		builder.copyHeaders(getHeaders(attributes, prefixToUse));
 		builder.copyHeaders(originalHeaders);

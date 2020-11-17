@@ -59,7 +59,7 @@ public class CloudEventFunctionTests {
 		 * both on input and output that it is dealing with Cloud Event and generates
 		 * appropriate headers/attributes
 		 */
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(resultMessage.getHeaders());
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(resultMessage.getHeaders());
 		assertThat(attributes.isValidCloudEvent()).isTrue();
 		assertThat(attributes.getType()).isEqualTo(Person.class.getName());
 		assertThat(attributes.getSource().toString()).isEqualTo("http://spring.io/application-application");
@@ -86,7 +86,7 @@ public class CloudEventFunctionTests {
 		 * both on input and output that it is dealing with Cloud Event and generates
 		 * appropriate headers/attributes
 		 */
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(resultMessage.getHeaders());
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(resultMessage.getHeaders());
 		assertThat(attributes.isValidCloudEvent()).isTrue();
 		assertThat(attributes.getType()).isEqualTo(SpringReleaseEvent.class.getName());
 		assertThat(attributes.getSource().toString()).isEqualTo("http://spring.io/application-application");

@@ -45,9 +45,7 @@ public class CloudEventHttpUtils {
 	public static SpringCloudEventAttributes fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(headers.toSingleValueMap());
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(map,
-				CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
-		return attributes;
+		return CloudEventAttributeUtils.generateAttributes(map);
 	}
 
 }

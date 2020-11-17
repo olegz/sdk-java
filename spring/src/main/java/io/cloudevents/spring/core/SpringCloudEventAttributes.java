@@ -48,13 +48,10 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 
 	private static final long serialVersionUID = 5393610770855366497L;
 
-	private final String prefixToUse;
-
-	public SpringCloudEventAttributes(Map<String, Object> headers, String prefixToUse) {
+	SpringCloudEventAttributes(Map<String, Object> headers) {
 		super(headers);
-		this.prefixToUse = prefixToUse;
-		safe(headers, prefixToUse + CloudEventAttributeUtils.SOURCE);
-		safe(headers, prefixToUse + CloudEventAttributeUtils.DATASCHEMA);
+		safe(headers, CloudEventAttributeUtils.SOURCE);
+		safe(headers, CloudEventAttributeUtils.DATASCHEMA);
 	}
 
 	private void safe(Map<String, Object> headers, String key) {
@@ -62,10 +59,6 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		if (value != null) {
 			put(key, value.toString());
 		}
-	}
-
-	public SpringCloudEventAttributes(Map<String, Object> headers) {
-		this(headers, CloudEventAttributeUtils.determinePrefixToUse(headers));
 	}
 
 	public SpringCloudEventAttributes setSpecVersion(String specversion) {
@@ -76,7 +69,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	@Override
 	public SpecVersion getSpecVersion() {
 		String specVersion = (String) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
-		return SpecVersion.parse(specVersion);
+		return specVersion == null ? SpecVersion.V1 : SpecVersion.parse(specVersion);
 	}
 
 	public SpringCloudEventAttributes setId(String id) {
@@ -158,12 +151,6 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	 */
 	@Override
 	public Object getAttribute(String attributeName) throws IllegalArgumentException {
-		if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
-			return this.get(CloudEventAttributeUtils.ATTR_PREFIX + attributeName);
-		}
-		else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
-			return this.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName);
-		}
 		return this.get(attributeName);
 	}
 
@@ -179,24 +166,8 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 				&& StringUtils.hasText(this.getSpecVersion().toString()) && StringUtils.hasText(this.getType());
 	}
 
-	String getAttributeName(String attributeName) {
-		if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
-			return CloudEventAttributeUtils.ATTR_PREFIX + attributeName;
-		}
-		else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
-			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName;
-		}
-		return attributeName;
-	}
-
 	private SpringCloudEventAttributes setAttribute(String attrName, Object attrValue) {
-		if (StringUtils.hasText(this.prefixToUse)) {
-			this.remove(this.getAttributeName(attrName));
-			this.put(this.prefixToUse + attrName, attrValue);
-		}
-		else {
-			this.put(this.getAttributeName(attrName), attrValue);
-		}
+		this.put(attrName, attrValue);
 		return this;
 	}
 
