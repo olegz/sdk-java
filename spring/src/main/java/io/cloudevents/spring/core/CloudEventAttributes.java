@@ -61,7 +61,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getId() {
-		A id = this.getAtttribute(CloudEventAttributeUtils.ID);
+		A id = this.getAttribute(CloudEventAttributeUtils.ID);
 		if (id instanceof UUID) {
 			id = null;
 		}
@@ -74,7 +74,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getSource() {
-		return this.getAtttribute(CloudEventAttributeUtils.SOURCE);
+		return this.getAttribute(CloudEventAttributeUtils.SOURCE);
 	}
 
 	public CloudEventAttributes setSpecversion(String specversion) {
@@ -83,7 +83,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getSpecversion() {
-		return this.getAtttribute(CloudEventAttributeUtils.SPECVERSION);
+		return this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
 	}
 
 	public CloudEventAttributes setType(String type) {
@@ -92,7 +92,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getType() {
-		return this.getAtttribute(CloudEventAttributeUtils.TYPE);
+		return this.getAttribute(CloudEventAttributeUtils.TYPE);
 	}
 
 	public CloudEventAttributes setDataContentType(String datacontenttype) {
@@ -101,7 +101,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getDataContentType() {
-		return this.getAtttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
+		return this.getAttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
 	}
 
 	public CloudEventAttributes setDataSchema(String dataschema) {
@@ -110,7 +110,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getDataSchema() {
-		return this.getAtttribute(CloudEventAttributeUtils.DATASCHEMA);
+		return this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
 	}
 
 	public CloudEventAttributes setSubject(String subject) {
@@ -119,7 +119,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getSubect() {
-		return this.getAtttribute(CloudEventAttributeUtils.SUBJECT);
+		return this.getAttribute(CloudEventAttributeUtils.SUBJECT);
 	}
 
 	public CloudEventAttributes setTime(String time) {
@@ -128,7 +128,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	}
 
 	public <A> A getTime() {
-		return this.getAtttribute(CloudEventAttributeUtils.TIME);
+		return this.getAttribute(CloudEventAttributeUtils.TIME);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class CloudEventAttributes extends HashMap<String, Object> {
 	 * attribute or null.
 	 */
 	@SuppressWarnings("unchecked")
-	public <A> A getAtttribute(String attrName) {
+	public <A> A getAttribute(String attrName) {
 		if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attrName)) {
 			return (A) this.get(CloudEventAttributeUtils.ATTR_PREFIX + attrName);
 		}
