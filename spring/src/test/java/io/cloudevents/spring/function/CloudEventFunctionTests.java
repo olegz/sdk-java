@@ -16,11 +16,12 @@
 
 package io.cloudevents.spring.function;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.function.Function;
 
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.CloudEventAttributes;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.function.context.FunctionCatalog;
@@ -31,31 +32,29 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
-import io.cloudevents.spring.messaging.CloudEventAttributes;
-import io.cloudevents.spring.messaging.CloudEventMessageUtils;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *
  * @author Oleg Zhurakousky
  *
  */
 public class CloudEventFunctionTests {
 
 	@SuppressWarnings("unchecked")
-    @Test
+	@Test
 	public void testBinaryPojoToPojoDefaultOutputAttributeProvider() {
-	    Function<Object, Object> function = this.lookup("echo", TestConfiguration.class);
+		Function<Object, Object> function = this.lookup("echo", TestConfiguration.class);
 
 		Message<String> inputMessage = MessageBuilder.withPayload("{\"name\":\"Ricky\"}")
-		    .copyHeaders(CloudEventMessageUtils.get("https://spring.io/", "org.springframework"))
-		    .build();
-		assertThat(CloudEventMessageUtils.isBinary(inputMessage.getHeaders())).isTrue();
+				.copyHeaders(CloudEventAttributeUtils.get("https://spring.io/", "org.springframework")).build();
+		assertThat(CloudEventAttributeUtils.isBinary(inputMessage.getHeaders())).isTrue();
 
 		Message<Person> resultMessage = (Message<Person>) function.apply(inputMessage);
 
 		/*
-		 * Validates that although user only deals with POJO, the framework recognizes both on input and
-		 * output that it is dealing with Cloud Event and generates appropriate headers/attributes
+		 * Validates that although user only deals with POJO, the framework recognizes
+		 * both on input and output that it is dealing with Cloud Event and generates
+		 * appropriate headers/attributes
 		 */
 		CloudEventAttributes attributes = new CloudEventAttributes(resultMessage.getHeaders());
 		assertThat(attributes.isValidCloudEvent()).isTrue();
@@ -64,65 +63,61 @@ public class CloudEventFunctionTests {
 	}
 
 	@SuppressWarnings("unchecked")
-    @Test
-    public void testStructuredPojoToPojoDefaultOutputAttributeProvider() {
-	    String payload = "{\n" +
-                "    \"specversion\" : \"1.0\",\n" +
-                "    \"type\" : \"org.springframework\",\n" +
-                "    \"source\" : \"https://spring.io/\",\n" +
-                "    \"id\" : \"A234-1234-1234\",\n" +
-                "    \"datacontenttype\" : \"application/json\",\n" +
-                "    \"data\" : {\n" +
-                "        \"version\" : \"1.0\",\n" +
-                "        \"releaseName\" : \"Spring Framework\",\n" +
-                "        \"releaseDate\" : \"24-03-2004\"\n" +
-                "    }\n" +
-                "}";
-        Function<Object, Object> function = this.lookup("springRelease", TestConfiguration.class);
+	@Test
+	public void testStructuredPojoToPojoDefaultOutputAttributeProvider() {
+		String payload = "{\n" + "    \"specversion\" : \"1.0\",\n" + "    \"type\" : \"org.springframework\",\n"
+				+ "    \"source\" : \"https://spring.io/\",\n" + "    \"id\" : \"A234-1234-1234\",\n"
+				+ "    \"datacontenttype\" : \"application/json\",\n" + "    \"data\" : {\n"
+				+ "        \"version\" : \"1.0\",\n" + "        \"releaseName\" : \"Spring Framework\",\n"
+				+ "        \"releaseDate\" : \"24-03-2004\"\n" + "    }\n" + "}";
+		Function<Object, Object> function = this.lookup("springRelease", TestConfiguration.class);
 
-        Message<String> inputMessage = MessageBuilder.withPayload(payload)
-                .setHeader(MessageHeaders.CONTENT_TYPE, CloudEventMessageUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
-                .build();
-        assertThat(CloudEventMessageUtils.isBinary(inputMessage.getHeaders())).isFalse();
+		Message<String> inputMessage = MessageBuilder.withPayload(payload).setHeader(MessageHeaders.CONTENT_TYPE,
+				CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json").build();
+		assertThat(CloudEventAttributeUtils.isBinary(inputMessage.getHeaders())).isFalse();
 
-        Message<SpringReleaseEvent> resultMessage = (Message<SpringReleaseEvent>) function.apply(inputMessage);
+		Message<SpringReleaseEvent> resultMessage = (Message<SpringReleaseEvent>) function.apply(inputMessage);
 
-        /*
-         * Validates that although user only deals with POJO, the framework recognizes both on input and
-         * output that it is dealing with Cloud Event and generates appropriate headers/attributes
-         */
-        CloudEventAttributes attributes = new CloudEventAttributes(resultMessage.getHeaders());
-        assertThat(attributes.isValidCloudEvent()).isTrue();
-        assertThat((String) attributes.getSource()).isEqualTo(SpringReleaseEvent.class.getName());
-        assertThat((String) attributes.getType()).isEqualTo("http://spring.io/application-application");
-    }
-
+		/*
+		 * Validates that although user only deals with POJO, the framework recognizes
+		 * both on input and output that it is dealing with Cloud Event and generates
+		 * appropriate headers/attributes
+		 */
+		CloudEventAttributes attributes = new CloudEventAttributes(resultMessage.getHeaders());
+		assertThat(attributes.isValidCloudEvent()).isTrue();
+		assertThat((String) attributes.getSource()).isEqualTo(SpringReleaseEvent.class.getName());
+		assertThat((String) attributes.getType()).isEqualTo("http://spring.io/application-application");
+	}
 
 	private Function<Object, Object> lookup(String functionDefinition, Class<?>... configClass) {
 		ApplicationContext context = new SpringApplicationBuilder(configClass).run(
-				"--logging.level.org.springframework.cloud.function=DEBUG", "--spring.main.lazy-initialization=true");
+				"--spring.main.web-application-type=NONE", "--logging.level.org.springframework.cloud.function=DEBUG",
+				"--spring.main.lazy-initialization=true");
 		return context.getBean(FunctionCatalog.class).lookup(functionDefinition);
 	}
 
 	@EnableAutoConfiguration
 	@Configuration
 	public static class TestConfiguration {
-	    @Bean
-	    Function<Person, Person> echo() {
-	        return Function.identity();
-	    }
 
-	    @Bean
-        Function<SpringReleaseEvent, SpringReleaseEvent> springRelease() {
-            return event -> {
-                event.setReleaseDate("01-10-2006");
-                event.setVersion("2.0");
-                return event;
-            };
-        }
+		@Bean
+		Function<Person, Person> echo() {
+			return Function.identity();
+		}
+
+		@Bean
+		Function<SpringReleaseEvent, SpringReleaseEvent> springRelease() {
+			return event -> {
+				event.setReleaseDate("01-10-2006");
+				event.setVersion("2.0");
+				return event;
+			};
+		}
+
 	}
 
 	public static class Person {
+
 		private String name;
 
 		public String getName() {
@@ -132,5 +127,7 @@ public class CloudEventFunctionTests {
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
+
 }

@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-package io.cloudevents.spring.messaging;
-
+package io.cloudevents.spring.core;
 
 /**
- * Strategy that should be implemented by the user to help with outgoing Cloud Event attributes.
- * <br><br>
- * The provided `attributes` are already initialized with default values, so you can only set the ones that you need.
+ * Strategy that should be implemented by the user to help with outgoing Cloud Event
+ * attributes. <br>
  * <br>
- * Once implemented, simply configure it as a bean and the framework will invoke it before the outbound Cloud Event Message is finalized.
+ * The provided `attributes` are already initialized with default values, so you can set
+ * only the ones that you need. <br>
+ * Once implemented, simply configure it as a bean and the framework will invoke it before
+ * the outbound Cloud Event Message is finalized.
  *
  * <pre>{@code
- * @Bean
+ * &#64;Bean
  * public CloudEventAttributesProvider cloudEventAttributesProvider() {
- * 	return attributes -> {
+ * 	return attributes ->
  *		attributes.setSource("https://interface21.com/").setType("com.interface21");
- *	};
  * }}
  * </pre>
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
- *
  * @since 3.1
  */
 @FunctionalInterface
 public interface CloudEventAttributesProvider {
+
 	/**
-	 *
 	 * @param attributes instance of {@link CloudEventAttributes}
 	 */
-	void generateDefaultCloudEventHeaders(CloudEventAttributes attributes);
+	CloudEventAttributes generateDefaultCloudEventHeaders(CloudEventAttributes attributes);
+
 }
