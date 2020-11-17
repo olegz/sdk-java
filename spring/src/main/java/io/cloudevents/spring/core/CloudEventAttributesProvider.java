@@ -16,6 +16,8 @@
 
 package io.cloudevents.spring.core;
 
+import io.cloudevents.CloudEventAttributes;
+
 /**
  * Strategy that should be implemented by the user to help with outgoing Cloud Event
  * attributes. <br>
@@ -25,12 +27,12 @@ package io.cloudevents.spring.core;
  * Once implemented, simply configure it as a bean and the framework will invoke it before
  * the outbound Cloud Event Message is finalized.
  *
- * <pre>{@code
+ * <pre>
  * &#64;Bean
  * public CloudEventAttributesProvider cloudEventAttributesProvider() {
  * 	return attributes ->
- *		attributes.setSource("https://interface21.com/").setType("com.interface21");
- * }}
+ *		CloudEventAttributeUtils.get(attributes).setSource("https://interface21.com/").setType("com.interface21");
+ * }
  * </pre>
  *
  * @author Oleg Zhurakousky
@@ -43,6 +45,6 @@ public interface CloudEventAttributesProvider {
 	/**
 	 * @param attributes instance of {@link CloudEventAttributes}
 	 */
-	CloudEventAttributes generateDefaultCloudEventHeaders(CloudEventAttributes attributes);
+	CloudEventAttributes generateOutputAttributes(CloudEventAttributes attributes);
 
 }

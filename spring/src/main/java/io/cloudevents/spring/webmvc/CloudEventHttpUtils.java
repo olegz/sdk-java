@@ -18,8 +18,9 @@ package io.cloudevents.spring.webmvc;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributes;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
 
 import org.springframework.http.HttpHeaders;
 
@@ -31,22 +32,21 @@ public class CloudEventHttpUtils {
 
 	public static HttpHeaders toHttp(CloudEventAttributes attributes) {
 		HttpHeaders headers = new HttpHeaders();
-		for (String key : attributes.keySet()) {
-			String target = key;
-			if (key.startsWith(CloudEventAttributeUtils.ATTR_PREFIX)) {
-				target = CloudEventAttributeUtils.HTTP_ATTR_PREFIX
-						+ key.substring(0, CloudEventAttributeUtils.ATTR_PREFIX.length());
+		for (String key : attributes.getAttributeNames()) {
+			String target = CloudEventAttributeUtils.HTTP_ATTR_PREFIX + key;
+			if (attributes.getAttribute(key) != null) {
+				// TODO: need to convert timestamps?
+				headers.set(target, attributes.getAttribute(key).toString());
 			}
-			// TODO: need to convert timestamps
-			headers.set(target, attributes.get(key).toString());
 		}
 		return headers;
 	}
 
-	public static CloudEventAttributes fromHttp(HttpHeaders headers) {
+	public static SpringCloudEventAttributes fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(headers.toSingleValueMap());
-		CloudEventAttributes attributes = new CloudEventAttributes(map, CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(map,
+				CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
 		return attributes;
 	}
 

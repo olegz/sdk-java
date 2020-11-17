@@ -17,17 +17,15 @@
 package io.cloudevents.spring.core;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.util.StringUtils;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
+
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.StringUtils;
 
 /**
  * Utility class to assist with accessing and setting Cloud Events attributes from
@@ -48,161 +46,158 @@ import io.cloudevents.SpecVersion;
  */
 public class SpringCloudEventAttributes extends HashMap<String, Object> implements CloudEventAttributes {
 
-    private static final long serialVersionUID = 5393610770855366497L;
+	private static final long serialVersionUID = 5393610770855366497L;
 
-    private final String prefixToUse;
+	private final String prefixToUse;
 
-    public SpringCloudEventAttributes(Map<String, Object> headers, String prefixToUse) {
-        super(headers);
-        this.prefixToUse = prefixToUse;
-    }
+	public SpringCloudEventAttributes(Map<String, Object> headers, String prefixToUse) {
+		super(headers);
+		this.prefixToUse = prefixToUse;
+		safe(headers, prefixToUse + CloudEventAttributeUtils.SOURCE);
+		safe(headers, prefixToUse + CloudEventAttributeUtils.DATASCHEMA);
+	}
 
-    public SpringCloudEventAttributes(Map<String, Object> headers) {
-        this(headers, null);
-    }
+	private void safe(Map<String, Object> headers, String key) {
+		Object value = headers.get(key);
+		if (value != null) {
+			put(key, value.toString());
+		}
+	}
 
-    public CloudEventAttributes setSpecversion(String specversion) {
-        this.setAtttribute(CloudEventAttributeUtils.SPECVERSION, specversion);
-        return this;
-    }
+	public SpringCloudEventAttributes(Map<String, Object> headers) {
+		this(headers, CloudEventAttributeUtils.determinePrefixToUse(headers));
+	}
 
-    @Override
-    public SpecVersion getSpecVersion() {
-        String specVersion = (String) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
-        return SpecVersion.parse(specVersion);
-    }
+	public SpringCloudEventAttributes setSpecVersion(String specversion) {
+		this.setAttribute(CloudEventAttributeUtils.SPECVERSION, specversion);
+		return this;
+	}
 
-    public SpringCloudEventAttributes setId(String id) {
-        this.setAtttribute(CloudEventAttributeUtils.ID, id);
-        return this;
-    }
+	@Override
+	public SpecVersion getSpecVersion() {
+		String specVersion = (String) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
+		return SpecVersion.parse(specVersion);
+	}
 
-    @Override
-    public String getId() {
-        Object id = this.getAttribute(CloudEventAttributeUtils.ID);
-        if (!(id instanceof UUID)) {
-            id = null;
-        }
-        return (String) id;
-    }
+	public SpringCloudEventAttributes setId(String id) {
+		this.setAttribute(CloudEventAttributeUtils.ID, id);
+		return this;
+	}
 
-    public CloudEventAttributes setType(String type) {
-        this.setAtttribute(CloudEventAttributeUtils.TYPE, type);
-        return this;
-    }
+	@Override
+	public String getId() {
+		Object id = this.getAttribute(CloudEventAttributeUtils.ID);
+		return id == null ? null : id.toString();
+	}
 
-    @Override
-    public String getType() {
-        return (String) this.getAttribute(CloudEventAttributeUtils.TYPE);
-    }
+	public SpringCloudEventAttributes setType(String type) {
+		this.setAttribute(CloudEventAttributeUtils.TYPE, type);
+		return this;
+	}
 
-    public CloudEventAttributes setSource(URI source) {
-        this.setAtttribute(CloudEventAttributeUtils.SOURCE, source.toASCIIString());
-        return this;
-    }
+	@Override
+	public String getType() {
+		return (String) this.getAttribute(CloudEventAttributeUtils.TYPE);
+	}
 
-    @Override
-    public URI getSource() {
-        String source = (String) this.getAttribute(CloudEventAttributeUtils.SOURCE);
-        try {
-            return new URI(source);
-        }
-        catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Failed to create source URI from " + source, e);
-        }
-    }
+	public SpringCloudEventAttributes setSource(URI source) {
+		this.setAttribute(CloudEventAttributeUtils.SOURCE, source.toString());
+		return this;
+	}
 
-    public CloudEventAttributes setDataContentType(String datacontenttype) {
-        this.setAtttribute(CloudEventAttributeUtils.DATACONTENTTYPE, datacontenttype);
-        return this;
-    }
+	@Override
+	public URI getSource() {
+		Object value = this.getAttribute(CloudEventAttributeUtils.SOURCE);
+		return value == null ? null : URI.create((String) value);
+	}
 
-    @Override
-    public String getDataContentType() {
-        return (String) this.getAttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
-    }
+	public SpringCloudEventAttributes setDataContentType(String datacontenttype) {
+		this.setAttribute(CloudEventAttributeUtils.DATACONTENTTYPE, datacontenttype);
+		return this;
+	}
 
-    public CloudEventAttributes setDataSchema(String dataschema) {
-        this.setAtttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema);
-        return this;
-    }
+	@Override
+	public String getDataContentType() {
+		return (String) this.getAttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
+	}
 
-    @Override
-    public URI getDataSchema() {
-        String dataschema = (String) this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
-        try {
-            return new URI(dataschema);
-        }
-        catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Failed to create dataschema URI from " + dataschema, e);
-        }
-    }
+	public SpringCloudEventAttributes setDataSchema(URI dataschema) {
+		this.setAttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema);
+		return this;
+	}
 
-    public CloudEventAttributes setSubject(String subject) {
-        this.setAtttribute(CloudEventAttributeUtils.SUBJECT, subject);
-        return this;
-    }
+	@Override
+	public URI getDataSchema() {
+		return (URI) this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
+	}
 
-    @Override
-    public String getSubject() {
-        return (String) this.getAttribute(CloudEventAttributeUtils.SUBJECT);
-    }
+	public SpringCloudEventAttributes setSubject(String subject) {
+		this.setAttribute(CloudEventAttributeUtils.SUBJECT, subject);
+		return this;
+	}
 
-    public CloudEventAttributes setTime(String time) {
-        this.setAtttribute(CloudEventAttributeUtils.TIME, time);
-        return this;
-    }
+	@Override
+	public String getSubject() {
+		return (String) this.getAttribute(CloudEventAttributeUtils.SUBJECT);
+	}
 
-    @Override
-    public OffsetDateTime getTime() {
-        String time = (String) this.getAttribute(CloudEventAttributeUtils.TIME);
-        return OffsetDateTime.parse(time);
-    }
+	public SpringCloudEventAttributes setTime(String time) {
+		this.setAttribute(CloudEventAttributeUtils.TIME, time);
+		return this;
+	}
 
-    /**
-     * Will delegate to the underlying {@link Map} returning the value for the requested
-     * attribute or null.
-     */
-    @Override
-    public Object getAttribute(String attributeName) throws IllegalArgumentException {
-        if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
-            return this.get(CloudEventAttributeUtils.ATTR_PREFIX + attributeName);
-        }
-        else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
-            return this.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName);
-        }
-        return this.get(attributeName);
-    }
+	@Override
+	public OffsetDateTime getTime() {
+		String time = (String) this.getAttribute(CloudEventAttributeUtils.TIME);
+		return OffsetDateTime.parse(time);
+	}
 
-    /**
-     * Determines if this instance of {@link CloudEventAttributes} represents valid Cloud
-     * Event. This implies that it contains all 4 required attributes (id, source, type &
-     * specversion)
-     * @return true if this instance represents a valid Cloud Event
-     */
-    public boolean isValidCloudEvent() {
-        return StringUtils.hasText(this.getId()) && StringUtils.hasText(this.getSource().toASCIIString())
-                && StringUtils.hasText(this.getSpecVersion().name()) && StringUtils.hasText(this.getType());
-    }
+	/**
+	 * Will delegate to the underlying {@link Map} returning the value for the requested
+	 * attribute or null.
+	 */
+	@Override
+	public Object getAttribute(String attributeName) throws IllegalArgumentException {
+		if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
+			return this.get(CloudEventAttributeUtils.ATTR_PREFIX + attributeName);
+		}
+		else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
+			return this.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName);
+		}
+		return this.get(attributeName);
+	}
 
-    String getAttributeName(String attributeName) {
-        if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
-            return CloudEventAttributeUtils.ATTR_PREFIX + attributeName;
-        }
-        else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
-            return CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName;
-        }
-        return attributeName;
-    }
+	/**
+	 * Determines if this instance of {@link CloudEventAttributes} represents valid Cloud
+	 * Event. This implies that it contains all 4 required attributes (id, source, type &
+	 * specversion)
+	 * @return true if this instance represents a valid Cloud Event
+	 */
+	public boolean isValidCloudEvent() {
+		return StringUtils.hasText(this.getId()) && this.getSource() != null
+				&& StringUtils.hasText(this.getSource().toString())
+				&& StringUtils.hasText(this.getSpecVersion().toString()) && StringUtils.hasText(this.getType());
+	}
 
-    private CloudEventAttributes setAtttribute(String attrName, String attrValue) {
-        if (StringUtils.hasText(this.prefixToUse)) {
-            this.remove(this.getAttributeName(attrName));
-            this.put(this.prefixToUse + attrName, attrValue);
-        }
-        else {
-            this.put(this.getAttributeName(attrName), attrValue);
-        }
-        return this;
-    }
+	String getAttributeName(String attributeName) {
+		if (this.containsKey(CloudEventAttributeUtils.ATTR_PREFIX + attributeName)) {
+			return CloudEventAttributeUtils.ATTR_PREFIX + attributeName;
+		}
+		else if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
+			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName;
+		}
+		return attributeName;
+	}
+
+	private SpringCloudEventAttributes setAttribute(String attrName, Object attrValue) {
+		if (StringUtils.hasText(this.prefixToUse)) {
+			this.remove(this.getAttributeName(attrName));
+			this.put(this.prefixToUse + attrName, attrValue);
+		}
+		else {
+			this.put(this.getAttributeName(attrName), attrValue);
+		}
+		return this;
+	}
+
 }

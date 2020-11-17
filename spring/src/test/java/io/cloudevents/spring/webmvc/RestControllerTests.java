@@ -18,7 +18,7 @@ package io.cloudevents.spring.webmvc;
 import java.net.URI;
 import java.util.UUID;
 
-import io.cloudevents.spring.core.CloudEventAttributes;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,8 +83,9 @@ class RestControllerTests {
 
 		@PostMapping("/")
 		public ResponseEntity<Foo> echo(@RequestBody Foo foo, @RequestHeader HttpHeaders headers) {
-			CloudEventAttributes attributes = CloudEventHttpUtils.fromHttp(headers).setId(UUID.randomUUID().toString())
-					.setSource("https://spring.io/foos").setType("io.spring.event.Foo");
+			SpringCloudEventAttributes attributes = CloudEventHttpUtils.fromHttp(headers)
+					.setId(UUID.randomUUID().toString()).setSource(URI.create("https://spring.io/foos"))
+					.setType("io.spring.event.Foo");
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
 			return ResponseEntity.ok().headers(outgoing).body(foo);
 		}

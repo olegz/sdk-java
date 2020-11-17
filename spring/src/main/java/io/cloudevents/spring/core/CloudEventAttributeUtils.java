@@ -16,13 +16,16 @@
 
 package io.cloudevents.spring.core;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import io.cloudevents.CloudEventAttributes;
+import io.cloudevents.lang.Nullable;
+
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -153,8 +156,20 @@ public final class CloudEventAttributeUtils {
 	 * Checks if {@link Message} represents cloud event in binary-mode.
 	 */
 	public static boolean isBinary(Map<String, Object> headers) {
-		CloudEventAttributes attributes = new CloudEventAttributes(headers);
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(headers);
 		return attributes.isValidCloudEvent();
+	}
+
+	public static SpringCloudEventAttributes get(CloudEventAttributes attributes) {
+		return get(attributes, ATTR_PREFIX);
+	}
+
+	public static SpringCloudEventAttributes get(CloudEventAttributes attributes, String prefix) {
+		if (attributes instanceof SpringCloudEventAttributes) {
+			return (SpringCloudEventAttributes) attributes;
+		}
+		SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>(), prefix);
+		return instance;
 	}
 
 	/**
@@ -166,7 +181,8 @@ public final class CloudEventAttributeUtils {
 	 * @param ce_type value for Cloud Event 'type' attribute
 	 * @return instance of {@link CloudEventAttributes}
 	 */
-	public static CloudEventAttributes get(String ce_id, String ce_specversion, String ce_source, String ce_type) {
+	public static SpringCloudEventAttributes get(String ce_id, String ce_specversion, String ce_source,
+			String ce_type) {
 		Assert.hasText(ce_id, "'ce_id' must not be null or empty");
 		Assert.hasText(ce_specversion, "'ce_specversion' must not be null or empty");
 		Assert.hasText(ce_source, "'ce_source' must not be null or empty");
@@ -176,7 +192,7 @@ public final class CloudEventAttributeUtils {
 		requiredAttributes.put(CloudEventAttributeUtils.CANONICAL_SPECVERSION, ce_specversion);
 		requiredAttributes.put(CloudEventAttributeUtils.CANONICAL_SOURCE, ce_source);
 		requiredAttributes.put(CloudEventAttributeUtils.CANONICAL_TYPE, ce_type);
-		return new CloudEventAttributes(requiredAttributes);
+		return new SpringCloudEventAttributes(requiredAttributes);
 	}
 
 	/**
@@ -186,11 +202,11 @@ public final class CloudEventAttributeUtils {
 	 * @param ce_type value for Cloud Event 'type' attribute
 	 * @return instance of {@link CloudEventAttributes}
 	 */
-	public static CloudEventAttributes get(String ce_source, String ce_type) {
+	public static SpringCloudEventAttributes get(String ce_source, String ce_type) {
 		return get(UUID.randomUUID().toString(), "1.0", ce_source, ce_type);
 	}
 
-	public static String determinePrefixToUse(MessageHeaders messageHeaders) {
+	public static String determinePrefixToUse(Map<String, Object> messageHeaders) {
 		Set<String> keys = messageHeaders.keySet();
 		if (keys.contains("user-agent")) {
 			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
@@ -204,24 +220,31 @@ public final class CloudEventAttributeUtils {
 	 * Typically called by Consumer.
 	 * 
 	 */
-	public static CloudEventAttributes generateAttributes(Message<?> message, CloudEventAttributesProvider provider) {
-		CloudEventAttributes attributes = generateDefaultAttributeValues(new CloudEventAttributes(message.getHeaders()),
-				message.getPayload().getClass().getName().getClass().getName(),
-				message.getPayload().getClass().getName().getClass().getName());
-		provider.generateDefaultCloudEventHeaders(attributes);
-		return attributes;
+	public static SpringCloudEventAttributes generateAttributes(Message<?> message,
+			CloudEventAttributesProvider provider) {
+		SpringCloudEventAttributes attributes = generateDefaultAttributeValues(
+				new SpringCloudEventAttributes(message.getHeaders()),
+				message.getPayload().getClass().getName().getClass().getName(), null);
+		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
 	}
 
-	public static CloudEventAttributes generateAttributes(Message<?> inputMessage, String typeName, String sourceName) {
-		CloudEventAttributes attributes = new CloudEventAttributes(inputMessage.getHeaders(),
+	public static SpringCloudEventAttributes generateAttributes(Message<?> inputMessage, String typeName,
+			String sourceName) {
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(inputMessage.getHeaders(),
 				CloudEventAttributeUtils.determinePrefixToUse(inputMessage.getHeaders()));
 		return generateDefaultAttributeValues(attributes, typeName, sourceName);
 	}
 
-	private static CloudEventAttributes generateDefaultAttributeValues(CloudEventAttributes attributes, String source,
-			String type) {
+	private static SpringCloudEventAttributes generateDefaultAttributeValues(SpringCloudEventAttributes attributes,
+			@Nullable String source, @Nullable String type) {
 		if (attributes.isValidCloudEvent()) {
-			return attributes.setSpecversion("1.0").setId(UUID.randomUUID().toString()).setType(type).setSource(source);
+			if (source != null) {
+				attributes = attributes.setSource(URI.create(source));
+			}
+			if (type != null) {
+				attributes = attributes.setType(type);
+			}
+			return attributes.setId(UUID.randomUUID().toString());
 		}
 		return attributes;
 	}

@@ -16,10 +16,12 @@
 
 package io.cloudevents.spring.messaging;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributes;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -52,7 +54,7 @@ public final class CloudEventMessageUtils {
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
 
 		Map<String, Object> headers = inputMessage.getHeaders();
-		CloudEventAttributes attributes = new CloudEventAttributes(headers);
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(headers);
 
 		// first check the obvious and see if content-type is `cloudevents`
 		if (!attributes.isValidCloudEvent() && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
@@ -85,7 +87,6 @@ public final class CloudEventMessageUtils {
 
 	private static Message<?> buildCeMessageFromStructured(Map<String, Object> structuredCloudEvent,
 			MessageHeaders originalHeaders) {
-		String prefixToUse = CloudEventAttributeUtils.determinePrefixToUse(originalHeaders);
 		Object data = null;
 		if (structuredCloudEvent
 				.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.DATA)) {
@@ -102,13 +103,22 @@ public final class CloudEventMessageUtils {
 		}
 		Assert.notNull(data, "'data' must not be null");
 		MessageBuilder<?> builder = MessageBuilder.withPayload(data);
-		CloudEventAttributes attributes = new CloudEventAttributes(structuredCloudEvent);
-		builder.setHeader(prefixToUse + CloudEventAttributeUtils.ID, attributes.getId());
-		builder.setHeader(prefixToUse + CloudEventAttributeUtils.SOURCE, attributes.getSource());
-		builder.setHeader(prefixToUse + CloudEventAttributeUtils.TYPE, attributes.getType());
-		builder.setHeader(prefixToUse + CloudEventAttributeUtils.SPECVERSION, attributes.getSpecversion());
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(structuredCloudEvent);
+		String prefixToUse = CloudEventAttributeUtils.determinePrefixToUse(originalHeaders);
+		builder.copyHeaders(getHeaders(attributes, prefixToUse));
 		builder.copyHeaders(originalHeaders);
 		return builder.build();
+	}
+
+	public static Map<String, ?> getHeaders(CloudEventAttributes attributes, String prefixToUse) {
+		Map<String, Object> result = new HashMap<>();
+		for (String key : attributes.getAttributeNames()) {
+			Object value = attributes.getAttribute(key);
+			if (value != null) {
+				result.put(prefixToUse + key, value);
+			}
+		}
+		return result;
 	}
 
 }

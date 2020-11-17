@@ -19,7 +19,8 @@ package io.cloudevents.spring.function;
 import java.util.function.Function;
 
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributes;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
+import io.cloudevents.spring.messaging.CloudEventMessageUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -46,7 +47,9 @@ public class CloudEventFunctionTests {
 		Function<Object, Object> function = this.lookup("echo", TestConfiguration.class);
 
 		Message<String> inputMessage = MessageBuilder.withPayload("{\"name\":\"Ricky\"}")
-				.copyHeaders(CloudEventAttributeUtils.get("https://spring.io/", "org.springframework")).build();
+				.copyHeaders(CloudEventMessageUtils
+						.getHeaders(CloudEventAttributeUtils.get("https://spring.io/", "org.springframework"), "ce_"))
+				.build();
 		assertThat(CloudEventAttributeUtils.isBinary(inputMessage.getHeaders())).isTrue();
 
 		Message<Person> resultMessage = (Message<Person>) function.apply(inputMessage);
@@ -56,10 +59,10 @@ public class CloudEventFunctionTests {
 		 * both on input and output that it is dealing with Cloud Event and generates
 		 * appropriate headers/attributes
 		 */
-		CloudEventAttributes attributes = new CloudEventAttributes(resultMessage.getHeaders());
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(resultMessage.getHeaders());
 		assertThat(attributes.isValidCloudEvent()).isTrue();
-		assertThat((String) attributes.getSource()).isEqualTo(Person.class.getName());
-		assertThat((String) attributes.getType()).isEqualTo("http://spring.io/application-application");
+		assertThat(attributes.getType()).isEqualTo(Person.class.getName());
+		assertThat(attributes.getSource().toString()).isEqualTo("http://spring.io/application-application");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -83,10 +86,10 @@ public class CloudEventFunctionTests {
 		 * both on input and output that it is dealing with Cloud Event and generates
 		 * appropriate headers/attributes
 		 */
-		CloudEventAttributes attributes = new CloudEventAttributes(resultMessage.getHeaders());
+		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(resultMessage.getHeaders());
 		assertThat(attributes.isValidCloudEvent()).isTrue();
-		assertThat((String) attributes.getSource()).isEqualTo(SpringReleaseEvent.class.getName());
-		assertThat((String) attributes.getType()).isEqualTo("http://spring.io/application-application");
+		assertThat(attributes.getType()).isEqualTo(SpringReleaseEvent.class.getName());
+		assertThat(attributes.getSource().toString()).isEqualTo("http://spring.io/application-application");
 	}
 
 	private Function<Object, Object> lookup(String functionDefinition, Class<?>... configClass) {
