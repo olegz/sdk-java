@@ -1,4 +1,4 @@
-## Examples of Cloud Events with Spring
+## Examples of Cloud Events with Spring Cloud Function Web
 
 ### Introduction
 The current example uses spring-cloud-function framework as its core which allows users to only worry about functional aspects of 
