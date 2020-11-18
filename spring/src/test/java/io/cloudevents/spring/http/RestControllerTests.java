@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.cloudevents.spring.webmvc;
+package io.cloudevents.spring.http;
 
 import java.net.URI;
 import java.util.UUID;
 
 import io.cloudevents.spring.core.MutableCloudEventAttributes;
+import io.cloudevents.spring.http.CloudEventHttpUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
