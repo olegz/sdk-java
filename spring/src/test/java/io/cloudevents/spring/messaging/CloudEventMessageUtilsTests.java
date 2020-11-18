@@ -39,8 +39,10 @@ public class CloudEventMessageUtilsTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testStructuredToBinaryWithPrefix() {
-		Message<String> structuredMessage = MessageBuilder.withPayload(payloadWithHttpPrefix).setHeader(
-				MessageHeaders.CONTENT_TYPE, CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json").build();
+		Message<String> structuredMessage = MessageBuilder.withPayload(payloadWithHttpPrefix)
+				.setHeader(MessageHeaders.CONTENT_TYPE,
+						CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
+				.setHeader("foo", "bar").build();
 
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
@@ -50,6 +52,7 @@ public class CloudEventMessageUtilsTests {
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
 		assertThat(attributes.getDataContentType()).isEqualTo("application/json");
+		assertThat(binaryMessage.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@SuppressWarnings("unchecked")
