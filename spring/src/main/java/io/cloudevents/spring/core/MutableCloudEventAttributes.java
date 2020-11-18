@@ -63,11 +63,6 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 		}
 	}
 
-	public MutableCloudEventAttributes setSpecVersion(SpecVersion specversion) {
-		this.setAttribute(CloudEventAttributeUtils.SPECVERSION, specversion);
-		return this;
-	}
-
 	@Override
 	public SpecVersion getSpecVersion() {
 		SpecVersion specVersion = (SpecVersion) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);

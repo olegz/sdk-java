@@ -3,6 +3,7 @@ package io.cloudevents.spring.messaging;
 import java.net.URI;
 import java.util.Map;
 
+import io.cloudevents.core.v1.CloudEventBuilder;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
 import io.cloudevents.spring.core.MutableCloudEventAttributes;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,20 @@ public class CloudEventMessageUtilsTests {
 			+ "    \"data\" : {\n" + "        \"version\" : \"1.0\",\n"
 			+ "        \"releaseName\" : \"Spring Framework\",\n" + "        \"releaseDate\" : \"24-03-2004\"\n"
 			+ "    }\n" + "}";
+
+	@Test
+	public void testGenerateAttributes() {
+		Message<String> message = MessageBuilder.withPayload("Hello")
+				.copyHeaders(CloudEventAttributeUtils
+						.mutate(new CloudEventBuilder().withId("A234-1234-1234")
+								.withSource(URI.create("https://spring.io/")).withType("org.springframework").build())
+						.toHeaders("ce_"))
+				.build();
+		MutableCloudEventAttributes attributes = CloudEventMessageUtils.generateAttributes(message, attrs -> attrs);
+		assertThat(attributes.getId()).isNotEqualTo("A234-1234-1234");
+		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
+		assertThat(attributes.getType()).isEqualTo(String.class.getName());
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test

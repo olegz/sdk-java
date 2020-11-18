@@ -26,7 +26,6 @@ import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.lang.Nullable;
 
-import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
@@ -122,46 +121,12 @@ public final class CloudEventAttributeUtils {
 	}
 
 	/**
-	 * Will construct instance of {@link CloudEventAttributes} setting its required
-	 * attributes.
-	 * @param ce_id value for Cloud Event 'id' attribute
-	 * @param ce_specversion value for Cloud Event 'specversion' attribute
-	 * @param ce_source value for Cloud Event 'source' attribute
-	 * @param ce_type value for Cloud Event 'type' attribute
-	 * @return instance of {@link CloudEventAttributes}
-	 */
-	public static MutableCloudEventAttributes get(String ce_id, String ce_specversion, String ce_source,
-			String ce_type) {
-		Assert.hasText(ce_id, "'ce_id' must not be null or empty");
-		Assert.hasText(ce_specversion, "'ce_specversion' must not be null or empty");
-		Assert.hasText(ce_source, "'ce_source' must not be null or empty");
-		Assert.hasText(ce_type, "'ce_type' must not be null or empty");
-		Map<String, Object> requiredAttributes = new HashMap<>();
-		requiredAttributes.put(CloudEventAttributeUtils.ID, ce_id);
-		requiredAttributes.put(CloudEventAttributeUtils.SPECVERSION, SpecVersion.parse(ce_specversion));
-		requiredAttributes.put(CloudEventAttributeUtils.SOURCE, ce_source);
-		requiredAttributes.put(CloudEventAttributeUtils.TYPE, ce_type);
-		return new MutableCloudEventAttributes(requiredAttributes);
-	}
-
-	/**
-	 * Will construct instance of {@link CloudEventAttributes} Should default/generate
-	 * cloud event ID and SPECVERSION.
-	 * @param ce_source value for Cloud Event 'source' attribute
-	 * @param ce_type value for Cloud Event 'type' attribute
-	 * @return instance of {@link CloudEventAttributes}
-	 */
-	public static MutableCloudEventAttributes get(String ce_source, String ce_type) {
-		return get(UUID.randomUUID().toString(), "1.0", ce_source, ce_type);
-	}
-
-	/**
 	 * Make a mutable copy of the input (or just return the input if it is already
 	 * mutable).
 	 * @param attributes input CloudEventAttributes
 	 * @return a mutable instance with the same attributes
 	 */
-	public static MutableCloudEventAttributes get(CloudEventAttributes attributes) {
+	public static MutableCloudEventAttributes mutate(CloudEventAttributes attributes) {
 		if (attributes instanceof MutableCloudEventAttributes) {
 			return (MutableCloudEventAttributes) attributes;
 		}
