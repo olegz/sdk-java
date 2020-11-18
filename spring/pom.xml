@@ -67,6 +67,12 @@
         <dependency>
             <groupId>io.cloudevents</groupId>
             <artifactId>cloudevents-core</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cloudevents</groupId>
+            <artifactId>cloudevents-core</artifactId>
             <classifier>tests</classifier>
             <type>test-jar</type>
             <version>${project.version}</version>

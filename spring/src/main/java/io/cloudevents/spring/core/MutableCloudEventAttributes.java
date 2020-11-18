@@ -175,20 +175,29 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	 * @param prefixToUse prefix to be used on attributes
 	 * @return map of Spring's {@link Message} headers.
 	 */
-	public Map<String, ?> toMessageHeaders(String prefixToUse) {
+	public Map<String, Object> toMessageHeaders(String prefixToUse) {
 		Map<String, Object> result = new HashMap<>();
+		if (!StringUtils.hasText(prefixToUse)) {
+			prefixToUse = "";
+		}
 		for (String key : this.getAttributeNames()) {
 			Object value = this.getAttribute(key);
 			if (value != null) {
 				result.put(prefixToUse + key, value);
 			}
 		}
+		result.put(prefixToUse + "specversion", this.getSpecVersion().toString());
 		return result;
 	}
 
 	private MutableCloudEventAttributes setAttribute(String attrName, Object attrValue) {
 		map.put(attrName, attrValue);
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return map.toString();
 	}
 
 }

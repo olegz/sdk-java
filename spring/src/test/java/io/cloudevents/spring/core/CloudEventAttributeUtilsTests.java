@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.cloudevents.SpecVersion;
+import io.cloudevents.core.v1.CloudEventBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +40,42 @@ public class CloudEventAttributeUtilsTests {
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
 		assertThat(attributes.getDataContentType()).isEqualTo("application/json");
+	}
+
+	@Test
+	public void testWithNative() {
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.get(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
+						.withType("org.springframework").build());
+		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
+		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
+		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
+		assertThat(attributes.getType()).isEqualTo("org.springframework");
+	}
+
+	@Test
+	public void testToHeadersNoPrefix() {
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.get(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
+						.withType("org.springframework").build());
+		Map<String, Object> headers = attributes.toMessageHeaders(null);
+		assertThat(headers.get("id")).isEqualTo("A234-1234-1234");
+		assertThat(headers.get("specversion")).isEqualTo("1.0");
+		assertThat(headers.get("source")).isEqualTo("https://spring.io/");
+		assertThat(headers.get("type")).isEqualTo("org.springframework");
+	}
+
+	@Test
+	public void testToHeaders() {
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.get(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
+						.withType("org.springframework").build());
+		Map<String, Object> headers = attributes.toMessageHeaders("ce-");
+		assertThat(headers.get("ce-id")).isEqualTo("A234-1234-1234");
+		assertThat(headers).doesNotContainKey("id");
+		assertThat(headers.get("ce-specversion")).isEqualTo("1.0");
+		assertThat(headers.get("ce-source")).isEqualTo("https://spring.io/");
+		assertThat(headers.get("ce-type")).isEqualTo("org.springframework");
 	}
 
 }
