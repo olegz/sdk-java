@@ -44,6 +44,6 @@ public interface CloudEventAttributesProvider {
 	/**
 	 * @param attributes instance of {@link CloudEventAttributes}
 	 */
-	CloudEventAttributes generateOutputAttributes(CloudEventAttributes attributes);
+	CloudEventAttributes getOutputAttributes(CloudEventAttributes attributes);
 
 }

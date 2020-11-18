@@ -169,7 +169,7 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	 * @param prefixToUse prefix to be used on attributes
 	 * @return map of headers.
 	 */
-	public Map<String, Object> toHeaders(String prefixToUse) {
+	public Map<String, Object> toMap(String prefixToUse) {
 		Map<String, Object> result = new HashMap<>();
 		if (!StringUtils.hasText(prefixToUse)) {
 			prefixToUse = "";

@@ -43,9 +43,9 @@ public class CloudEventMessageUtilsTests {
 				.copyHeaders(CloudEventAttributeUtils
 						.mutate(new CloudEventBuilder().withId("A234-1234-1234")
 								.withSource(URI.create("https://spring.io/")).withType("org.springframework").build())
-						.toHeaders("ce_"))
+						.toMap("ce_"))
 				.build();
-		MutableCloudEventAttributes attributes = CloudEventMessageUtils.generateAttributes(message, attrs -> attrs);
+		MutableCloudEventAttributes attributes = CloudEventMessageUtils.getOutputAttributes(message, attrs -> attrs);
 		assertThat(attributes.getId()).isNotEqualTo("A234-1234-1234");
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo(String.class.getName());
@@ -114,7 +114,7 @@ public class CloudEventMessageUtilsTests {
 		assertThat(binaryMessage.getHeaders().containsKey("ce-data")).isFalse();
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
 
-		Map headers = attributes.toHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX);
+		Map headers = attributes.toMap(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID))
 				.isEqualTo("A234-1234-1234");
 		assertThat(headers.get(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.SOURCE))
@@ -131,7 +131,7 @@ public class CloudEventMessageUtilsTests {
 		assertThat(binaryMessage.getHeaders().containsKey("data")).isFalse();
 		attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
 
-		headers = attributes.toHeaders(CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
+		headers = attributes.toMap(CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID))
 				.isEqualTo("A234-1234-1234");
 		assertThat(headers.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.SOURCE))

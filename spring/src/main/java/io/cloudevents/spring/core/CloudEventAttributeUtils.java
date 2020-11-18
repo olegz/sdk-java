@@ -16,15 +16,12 @@
 
 package io.cloudevents.spring.core;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
-import io.cloudevents.lang.Nullable;
 
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -112,15 +109,6 @@ public final class CloudEventAttributeUtils {
 	public static String TIME = "time";
 
 	/**
-	 * Checks if provided headers represent cloud event in binary-mode. This effectively
-	 * implies that provided headers have all the required Cloud Event attributes set.
-	 */
-	public static boolean isBinary(Map<String, Object> headers) {
-		MutableCloudEventAttributes attributes = generateAttributes(headers);
-		return attributes.isValidCloudEvent();
-	}
-
-	/**
 	 * Make a mutable copy of the input (or just return the input if it is already
 	 * mutable).
 	 * @param attributes input CloudEventAttributes
@@ -147,33 +135,6 @@ public final class CloudEventAttributeUtils {
 	public static MutableCloudEventAttributes wrap(Map<String, Object> headers) {
 		Map<String, Object> attributes = extractAttributes(headers);
 		return new MutableCloudEventAttributes(attributes);
-	}
-
-	/**
-	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}
-	 * filling in the missing required attributes with default values.
-	 * @param headers map representing headers
-	 * @return instance of {@link MutableCloudEventAttributes}
-	 */
-	public static MutableCloudEventAttributes generateAttributes(Map<String, Object> headers) {
-		MutableCloudEventAttributes attributes = wrap(headers);
-		MutableCloudEventAttributes newAttr = generateDefaultAttributeValues(attributes,
-				attributes.getSource() == null ? null : attributes.getSource().toString(), attributes.getType());
-		return newAttr;
-	}
-
-	private static MutableCloudEventAttributes generateDefaultAttributeValues(MutableCloudEventAttributes attributes,
-			@Nullable String source, @Nullable String type) {
-		if (attributes.isValidCloudEvent()) {
-			if (source != null) {
-				attributes = attributes.setSource(URI.create(source));
-			}
-			if (type != null) {
-				attributes = attributes.setType(type);
-			}
-			return attributes.setId(UUID.randomUUID().toString());
-		}
-		return attributes;
 	}
 
 	private static String determinePrefixToUse(Map<String, Object> messageHeaders) {

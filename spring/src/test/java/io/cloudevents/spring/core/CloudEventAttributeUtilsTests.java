@@ -13,6 +13,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CloudEventAttributeUtilsTests {
 
 	@Test
+	public void testWithEmpty() {
+		Map<String, Object> headers = new HashMap<>();
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(headers);
+		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
+		assertThat(attributes.getId()).isNull();
+		assertThat(attributes.getSource()).isNull();
+		assertThat(attributes.getType()).isNull();
+	}
+
+	@Test
 	public void testWithPrefix() {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put("ce-scpecversion", "1.0");
@@ -59,7 +69,7 @@ public class CloudEventAttributeUtilsTests {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
 				.mutate(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
 						.withType("org.springframework").build());
-		Map<String, Object> headers = attributes.toHeaders(null);
+		Map<String, Object> headers = attributes.toMap(null);
 		assertThat(headers.get("id")).isEqualTo("A234-1234-1234");
 		assertThat(headers.get("specversion")).isEqualTo("1.0");
 		assertThat(headers.get("source")).isEqualTo("https://spring.io/");
@@ -71,7 +81,7 @@ public class CloudEventAttributeUtilsTests {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
 				.mutate(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
 						.withType("org.springframework").build());
-		Map<String, Object> headers = attributes.toHeaders("ce-");
+		Map<String, Object> headers = attributes.toMap("ce-");
 		assertThat(headers.get("ce-id")).isEqualTo("A234-1234-1234");
 		assertThat(headers).doesNotContainKey("id");
 		assertThat(headers.get("ce-specversion")).isEqualTo("1.0");

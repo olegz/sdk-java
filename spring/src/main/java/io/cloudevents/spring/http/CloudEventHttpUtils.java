@@ -17,6 +17,7 @@ package io.cloudevents.spring.http;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
@@ -45,7 +46,7 @@ public class CloudEventHttpUtils {
 	public static MutableCloudEventAttributes fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(headers.toSingleValueMap());
-		return CloudEventAttributeUtils.generateAttributes(map);
+		return CloudEventAttributeUtils.wrap(map).setId(UUID.randomUUID().toString());
 	}
 
 }
