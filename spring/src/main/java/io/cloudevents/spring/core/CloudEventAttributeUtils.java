@@ -119,7 +119,7 @@ public final class CloudEventAttributeUtils {
 	 * @param attributes input CloudEventAttributes
 	 * @return a mutable instance with the same attributes
 	 */
-	public static MutableCloudEventAttributes mutate(CloudEventAttributes attributes) {
+	public static MutableCloudEventAttributes toMutableAttributes(CloudEventAttributes attributes) {
 		if (attributes instanceof MutableCloudEventAttributes) {
 			return (MutableCloudEventAttributes) attributes;
 		}
@@ -127,7 +127,7 @@ public final class CloudEventAttributeUtils {
 		for (String name : attributes.getAttributeNames()) {
 			headers.put(name, attributes.getAttribute(name));
 		}
-		return CloudEventAttributeUtils.wrap(headers);
+		return CloudEventAttributeUtils.toAttributes(headers);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public final class CloudEventAttributeUtils {
 	 * @param headers map representing headers
 	 * @return instance of {@link MutableCloudEventAttributes}
 	 */
-	public static MutableCloudEventAttributes wrap(Map<String, Object> headers) {
+	public static MutableCloudEventAttributes toAttributes(Map<String, Object> headers) {
 		Map<String, Object> attributes = extractAttributes(headers);
 		return new MutableCloudEventAttributes(attributes);
 	}

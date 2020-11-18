@@ -46,7 +46,7 @@ public class CloudEventHttpUtils {
 	public static MutableCloudEventAttributes fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(headers.toSingleValueMap());
-		return CloudEventAttributeUtils.wrap(map).setId(UUID.randomUUID().toString());
+		return CloudEventAttributeUtils.toAttributes(map).setId(UUID.randomUUID().toString());
 	}
 
 }

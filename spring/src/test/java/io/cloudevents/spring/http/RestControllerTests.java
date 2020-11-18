@@ -124,7 +124,7 @@ class RestControllerTests {
 		@PostMapping(path = "/", consumes = "application/cloudevents+json")
 		public ResponseEntity<Object> structured(@RequestBody Map<String, Object> body,
 				@RequestHeader HttpHeaders headers) {
-			MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(body)
+			MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(body)
 					.setId(UUID.randomUUID().toString()).setSource(URI.create("https://spring.io/foos"))
 					.setType("io.spring.event.Foo");
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);

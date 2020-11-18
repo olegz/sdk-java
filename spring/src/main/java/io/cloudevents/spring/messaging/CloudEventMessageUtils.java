@@ -52,7 +52,7 @@ public final class CloudEventMessageUtils {
 	@SuppressWarnings("unchecked")
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
 		Map<String, Object> headers = inputMessage.getHeaders();
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(headers);
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(headers);
 
 		// first check the obvious and see if content-type is `cloudevents`
 		if (!attributes.isValidCloudEvent() && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
@@ -89,15 +89,15 @@ public final class CloudEventMessageUtils {
 	 */
 	public static MutableCloudEventAttributes getOutputAttributes(Message<?> message,
 			CloudEventAttributesProvider provider) {
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(message.getHeaders())
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(message.getHeaders())
 				.setId(message.getHeaders().getId().toString())
 				.setType(message.getPayload().getClass().getName().getClass().getName());
-		return CloudEventAttributeUtils.mutate(provider.getOutputAttributes(attributes));
+		return CloudEventAttributeUtils.toMutableAttributes(provider.getOutputAttributes(attributes));
 	}
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,
 			MessageHeaders originalHeaders) {
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(structuredCloudEvent);
 		Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
 		if (payload == null) {
 			payload = Collections.emptyMap();

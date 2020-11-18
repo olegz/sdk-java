@@ -41,7 +41,7 @@ public class CloudEventMessageUtilsTests {
 	public void testGenerateAttributes() {
 		Message<String> message = MessageBuilder.withPayload("Hello")
 				.copyHeaders(CloudEventAttributeUtils
-						.mutate(new CloudEventBuilder().withId("A234-1234-1234")
+						.toMutableAttributes(new CloudEventBuilder().withId("A234-1234-1234")
 								.withSource(URI.create("https://spring.io/")).withType("org.springframework").build())
 						.toMap("ce_"))
 				.build();
@@ -62,7 +62,8 @@ public class CloudEventMessageUtilsTests {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
 				.toBinary(structuredMessage, converter);
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.toAttributes(binaryMessage.getHeaders());
 		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
@@ -81,7 +82,8 @@ public class CloudEventMessageUtilsTests {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
 				.toBinary(structuredMessage, converter);
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.toAttributes(binaryMessage.getHeaders());
 		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
@@ -97,7 +99,8 @@ public class CloudEventMessageUtilsTests {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
 				.toBinary(structuredMessage, converter);
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.toAttributes(binaryMessage.getHeaders());
 		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
@@ -113,7 +116,8 @@ public class CloudEventMessageUtilsTests {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
 				.toBinary(structuredMessage, converter);
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.toAttributes(binaryMessage.getHeaders());
 		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
 		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
 		assertThat(attributes.getType()).isEqualTo("org.springframework");
@@ -130,7 +134,8 @@ public class CloudEventMessageUtilsTests {
 		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
 				.toBinary(structuredMessage, converter);
 		assertThat(binaryMessage.getHeaders().containsKey("ce-data")).isFalse();
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
+				.toAttributes(binaryMessage.getHeaders());
 
 		Map headers = attributes.toMap(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID))
@@ -147,7 +152,7 @@ public class CloudEventMessageUtilsTests {
 
 		binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils.toBinary(structuredMessage, converter);
 		assertThat(binaryMessage.getHeaders().containsKey("data")).isFalse();
-		attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		attributes = CloudEventAttributeUtils.toAttributes(binaryMessage.getHeaders());
 
 		headers = attributes.toMap(CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID))
