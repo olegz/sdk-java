@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.CloudEventAttributesProvider;
 import io.cloudevents.spring.core.MutableCloudEventAttributes;
 
 import org.springframework.messaging.Message;
@@ -80,6 +81,17 @@ public final class CloudEventMessageUtils {
 					.setHeader(MessageHeaders.CONTENT_TYPE, attributes.getDataContentType()).build();
 		}
 		return inputMessage;
+	}
+
+	/**
+	 * Typically called by Consumer.
+	 *
+	 */
+	public static MutableCloudEventAttributes generateAttributes(Message<?> message,
+			CloudEventAttributesProvider provider) {
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
+				.setType(message.getPayload().getClass().getName().getClass().getName());
+		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
 	}
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,

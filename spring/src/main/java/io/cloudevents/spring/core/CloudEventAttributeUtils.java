@@ -26,7 +26,6 @@ import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.lang.Nullable;
 
-import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -157,6 +156,23 @@ public final class CloudEventAttributeUtils {
 	}
 
 	/**
+	 * Make a mutable copy of the input (or just return the input if it is already
+	 * mutable).
+	 * @param attributes input CloudEventAttributes
+	 * @return a mutable instance with the same attributes
+	 */
+	public static MutableCloudEventAttributes get(CloudEventAttributes attributes) {
+		if (attributes instanceof MutableCloudEventAttributes) {
+			return (MutableCloudEventAttributes) attributes;
+		}
+		HashMap<String, Object> headers = new HashMap<>();
+		for (String name : attributes.getAttributeNames()) {
+			headers.put(name, attributes.getAttribute(name));
+		}
+		return CloudEventAttributeUtils.wrap(headers);
+	}
+
+	/**
 	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}. This
 	 * is different then {@link #generateAttributes(Map)} where additionally missing
 	 * attributes will be set to default values.
@@ -181,17 +197,6 @@ public final class CloudEventAttributeUtils {
 		return newAttr;
 	}
 
-	/**
-	 * Typically called by Consumer.
-	 *
-	 */
-	public static MutableCloudEventAttributes generateAttributes(Message<?> message,
-			CloudEventAttributesProvider provider) {
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
-				.setType(message.getPayload().getClass().getName().getClass().getName());
-		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
-	}
-
 	private static MutableCloudEventAttributes generateDefaultAttributeValues(MutableCloudEventAttributes attributes,
 			@Nullable String source, @Nullable String type) {
 		if (attributes.isValidCloudEvent()) {
@@ -204,14 +209,6 @@ public final class CloudEventAttributeUtils {
 			return attributes.setId(UUID.randomUUID().toString());
 		}
 		return attributes;
-	}
-
-	private static MutableCloudEventAttributes get(CloudEventAttributes attributes) {
-		if (attributes instanceof MutableCloudEventAttributes) {
-			return (MutableCloudEventAttributes) attributes;
-		}
-		MutableCloudEventAttributes instance = new MutableCloudEventAttributes(new HashMap<>());
-		return instance;
 	}
 
 	private static String determinePrefixToUse(Map<String, Object> messageHeaders) {
