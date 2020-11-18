@@ -19,12 +19,12 @@ package io.cloudevents.spring.core;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.lang.Nullable;
 
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -54,7 +54,12 @@ public final class CloudEventAttributeUtils {
 	/**
 	 * Prefix for attributes.
 	 */
-	public static String ATTR_PREFIX = "ce_";
+	public static String DEFAULT_ATTR_PREFIX = "ce_";
+
+	/**
+     * AMQP attributes prefix.
+     */
+    public static String AMQP_ATTR_PREFIX = "cloudEvents:";
 
 	/**
 	 * Prefix for attributes.
@@ -67,19 +72,9 @@ public final class CloudEventAttributeUtils {
 	public static String DATA = "data";
 
 	/**
-	 * Value for 'data' attribute with prefix.
-	 */
-	public static String CANONICAL_DATA = ATTR_PREFIX + DATA;
-
-	/**
 	 * Value for 'id' attribute.
 	 */
 	public static String ID = "id";
-
-	/**
-	 * Value for 'id' attribute with prefix.
-	 */
-	public static String CANONICAL_ID = ATTR_PREFIX + ID;
 
 	/**
 	 * Value for 'source' attribute.
@@ -87,19 +82,9 @@ public final class CloudEventAttributeUtils {
 	public static String SOURCE = "source";
 
 	/**
-	 * Value for 'source' attribute with prefix.
-	 */
-	public static String CANONICAL_SOURCE = ATTR_PREFIX + SOURCE;
-
-	/**
 	 * Value for 'specversion' attribute.
 	 */
 	public static String SPECVERSION = "specversion";
-
-	/**
-	 * Value for 'specversion' attribute with prefix.
-	 */
-	public static String CANONICAL_SPECVERSION = ATTR_PREFIX + SPECVERSION;
 
 	/**
 	 * Value for 'type' attribute.
@@ -107,19 +92,9 @@ public final class CloudEventAttributeUtils {
 	public static String TYPE = "type";
 
 	/**
-	 * Value for 'type' attribute with prefix.
-	 */
-	public static String CANONICAL_TYPE = ATTR_PREFIX + TYPE;
-
-	/**
 	 * Value for 'datacontenttype' attribute.
 	 */
 	public static String DATACONTENTTYPE = "datacontenttype";
-
-	/**
-	 * Value for 'datacontenttype' attribute with prefix.
-	 */
-	public static String CANONICAL_DATACONTENTTYPE = ATTR_PREFIX + DATACONTENTTYPE;
 
 	/**
 	 * Value for 'dataschema' attribute.
@@ -127,19 +102,9 @@ public final class CloudEventAttributeUtils {
 	public static String DATASCHEMA = "dataschema";
 
 	/**
-	 * Value for 'dataschema' attribute with prefix.
-	 */
-	public static String CANONICAL_DATASCHEMA = ATTR_PREFIX + DATASCHEMA;
-
-	/**
 	 * Value for 'subject' attribute.
 	 */
 	public static String SUBJECT = "subject";
-
-	/**
-	 * Value for 'subject' attribute with prefix.
-	 */
-	public static String CANONICAL_SUBJECT = ATTR_PREFIX + SUBJECT;
 
 	/**
 	 * Value for 'time' attribute.
@@ -147,24 +112,13 @@ public final class CloudEventAttributeUtils {
 	public static String TIME = "time";
 
 	/**
-	 * Value for 'time' attribute with prefix.
-	 */
-	public static String CANONICAL_TIME = ATTR_PREFIX + TIME;
-
-	/**
-	 * Checks if headers represent cloud event in binary-mode.
+	 * Checks if provided headers represent cloud event in binary-mode.
+	 * This effectively implies that provided headers have all the required
+	 * Cloud Event attributes set.
 	 */
 	public static boolean isBinary(Map<String, Object> headers) {
 		SpringCloudEventAttributes attributes = generateAttributes(headers);
 		return attributes.isValidCloudEvent();
-	}
-
-	public static SpringCloudEventAttributes get(CloudEventAttributes attributes) {
-		if (attributes instanceof SpringCloudEventAttributes) {
-			return (SpringCloudEventAttributes) attributes;
-		}
-		SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>());
-		return instance;
 	}
 
 	/**
@@ -201,34 +155,41 @@ public final class CloudEventAttributeUtils {
 		return get(UUID.randomUUID().toString(), "1.0", ce_source, ce_type);
 	}
 
-	public static String determinePrefixToUse(Map<String, Object> messageHeaders) {
-		Set<String> keys = messageHeaders.keySet();
-		if (keys.contains("user-agent")) {
-			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
-		}
-		else {
-			return CloudEventAttributeUtils.ATTR_PREFIX;
-		}
+	/**
+	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes}.
+	 * This is different then {@link #generateAttributes(Map)} where additionally missing
+	 * attributes will be set to default values.
+	 *
+	 * @param headers map representing headers
+	 * @return instance of {@link SpringCloudEventAttributes}
+	 */
+	public static SpringCloudEventAttributes wrap(Map<String, Object> headers) {
+	    return new SpringCloudEventAttributes(headers);
 	}
 
+	/**
+	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes} filling in the
+	 * missing required attributes with default values.
+	 * @param headers map representing headers
+	 * @return instance of {@link SpringCloudEventAttributes}
+	 */
 	public static SpringCloudEventAttributes generateAttributes(Map<String, Object> headers) {
-		SpringCloudEventAttributes attributes = new SpringCloudEventAttributes(
-				extractWithPrefix(headers, CloudEventAttributeUtils.determinePrefixToUse(headers)));
-		return generateDefaultAttributeValues(attributes,
+		SpringCloudEventAttributes attributes = wrap(headers);
+		SpringCloudEventAttributes newAttr = generateDefaultAttributeValues(attributes,
 				attributes.getSource() == null ? null : attributes.getSource().toString(), attributes.getType());
+		return newAttr;
 	}
 
-	private static Map<String, Object> extractWithPrefix(Map<String, Object> headers, String prefix) {
-		HashMap<String, Object> result = new HashMap<>();
-		for (String key : headers.keySet()) {
-			String target = key;
-			if (key.startsWith(prefix)) {
-				target = key.substring(prefix.length());
-			}
-			result.put(target, headers.get(key));
-		}
-		return result;
-	}
+	/**
+     * Typically called by Consumer.
+     *
+     */
+    public static SpringCloudEventAttributes generateAttributes(Message<?> message,
+            CloudEventAttributesProvider provider) {
+        SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
+                .setType(message.getPayload().getClass().getName().getClass().getName());
+        return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
+    }
 
 	private static SpringCloudEventAttributes generateDefaultAttributeValues(SpringCloudEventAttributes attributes,
 			@Nullable String source, @Nullable String type) {
@@ -244,4 +205,22 @@ public final class CloudEventAttributeUtils {
 		return attributes;
 	}
 
+	private static SpringCloudEventAttributes get(CloudEventAttributes attributes) {
+        if (attributes instanceof SpringCloudEventAttributes) {
+            return (SpringCloudEventAttributes) attributes;
+        }
+        SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>());
+        return instance;
+    }
+
+
+//  public static String determinePrefixToUse(Map<String, Object> messageHeaders) {
+//      Set<String> keys = messageHeaders.keySet();
+//      if (keys.contains("user-agent")) {
+//          return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
+//      }
+//      else {
+//          return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
+//      }
+//  }
 }

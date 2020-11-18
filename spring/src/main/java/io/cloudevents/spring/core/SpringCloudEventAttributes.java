@@ -24,6 +24,7 @@ import java.util.Map;
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
 
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -150,8 +151,9 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	 * attribute or null.
 	 */
 	@Override
-	public Object getAttribute(String attributeName) throws IllegalArgumentException {
-		return this.get(attributeName);
+	public Object getAttribute(String attributeName) {
+	    String actualAttributeName = getAttributeName(attributeName);
+		return this.get(actualAttributeName);
 	}
 
 	/**
@@ -166,8 +168,47 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 				&& StringUtils.hasText(this.getSpecVersion().toString()) && StringUtils.hasText(this.getType());
 	}
 
+	/**
+	 * Will determine the actual attribute name which may have prefix such as 'ce_' or 'ce-' or
+	 * others identified by the specification. For example 'source' attribute may actually be
+	 * represented as 'ce_source'.
+	 *
+	 * @param attributeName provided attribute name
+	 * @return actual attribute name
+	 */
+	public String getAttributeName(String attributeName) {
+        if (this.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName)) {
+            return CloudEventAttributeUtils.HTTP_ATTR_PREFIX + attributeName;
+        }
+        else if (this.containsKey(CloudEventAttributeUtils.AMQP_ATTR_PREFIX + attributeName)) {
+            return CloudEventAttributeUtils.AMQP_ATTR_PREFIX + attributeName;
+        }
+        else if (this.containsKey(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + attributeName)) {
+            return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + attributeName;
+        }
+        return attributeName;
+    }
+
+	/**
+     * Will convert these attributes to {@link Map} of Spring {@link Message} headers
+     * where each attribute will be prefixed with the value of 'prefixToUse'.
+     *
+     * @param prefixToUse prefix to be used on attributes
+     * @return map of Spring's {@link Message} headers.
+     */
+    public Map<String, ?> toMessageHeaders(String prefixToUse) {
+        Map<String, Object> result = new HashMap<>();
+        for (String key : this.getAttributeNames()) {
+            Object value = this.getAttribute(key);
+            if (value != null) {
+                result.put(prefixToUse + key, value);
+            }
+        }
+        return result;
+    }
+
 	private SpringCloudEventAttributes setAttribute(String attrName, Object attrValue) {
-		this.put(attrName, attrValue);
+		this.put(this.getAttributeName(attrName), attrValue);
 		return this;
 	}
 

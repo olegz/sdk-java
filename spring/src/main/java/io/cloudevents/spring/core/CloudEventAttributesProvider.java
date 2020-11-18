@@ -37,7 +37,6 @@ import io.cloudevents.CloudEventAttributes;
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
- * @since 3.1
  */
 @FunctionalInterface
 public interface CloudEventAttributesProvider {

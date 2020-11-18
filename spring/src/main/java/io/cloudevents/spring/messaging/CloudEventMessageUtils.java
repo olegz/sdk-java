@@ -16,13 +16,7 @@
 
 package io.cloudevents.spring.messaging;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import io.cloudevents.CloudEventAttributes;
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributesProvider;
-import io.cloudevents.spring.core.SpringCloudEventAttributes;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -30,18 +24,20 @@ import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
+
 /**
- * Miscellaneous utility methods to deal with Cloud Events - https://cloudevents.io/. <br>
+ * Miscellaneous utility methods to assist with representing Cloud Event as Spring {@link Message}
+ * <br>
  * Primarily intended for the internal use within the framework;
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
- * @since 3.1
  */
 public final class CloudEventMessageUtils {
 
@@ -53,7 +49,6 @@ public final class CloudEventMessageUtils {
 
 	@SuppressWarnings("unchecked")
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
-
 		Map<String, Object> headers = inputMessage.getHeaders();
 		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(headers);
 
@@ -71,10 +66,10 @@ public final class CloudEventMessageUtils {
 						.parseMimeType(contentType.getType() + "/" + suffix);
 				Message<?> cloudEventMessage = MessageBuilder.fromMessage(inputMessage)
 						.setHeader(MessageHeaders.CONTENT_TYPE, cloudEventDeserializationContentType)
-						.setHeader(CloudEventAttributeUtils.CANONICAL_DATACONTENTTYPE, dataContentType).build();
+						.setHeader(CloudEventAttributeUtils.DATACONTENTTYPE, dataContentType).build();
 				Map<String, Object> structuredCloudEvent = (Map<String, Object>) messageConverter
 						.fromMessage(cloudEventMessage, Map.class);
-				Message<?> binaryCeMessage = buildCeMessageFromStructured(structuredCloudEvent,
+				Message<?> binaryCeMessage = buildBinaryMessageFromStructuredMap(structuredCloudEvent,
 						inputMessage.getHeaders());
 				return binaryCeMessage;
 			}
@@ -86,51 +81,14 @@ public final class CloudEventMessageUtils {
 		return inputMessage;
 	}
 
-	/**
-	 * Typically called by Consumer.
-	 * 
-	 */
-	public static SpringCloudEventAttributes generateAttributes(Message<?> message,
-			CloudEventAttributesProvider provider) {
-		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
-				.setType(message.getPayload().getClass().getName().getClass().getName());
-		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
-	}
-
-	private static Message<?> buildCeMessageFromStructured(Map<String, Object> structuredCloudEvent,
-			MessageHeaders originalHeaders) {
-		Object data = null;
-		if (structuredCloudEvent
-				.containsKey(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.DATA)) {
-			data = structuredCloudEvent.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.DATA);
-			structuredCloudEvent.remove(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.DATA);
-		}
-		else if (structuredCloudEvent.containsKey(CloudEventAttributeUtils.CANONICAL_DATA)) {
-			data = structuredCloudEvent.get(CloudEventAttributeUtils.CANONICAL_DATA);
-			structuredCloudEvent.remove(CloudEventAttributeUtils.CANONICAL_DATA);
-		}
-		else if (structuredCloudEvent.containsKey(CloudEventAttributeUtils.DATA)) {
-			data = structuredCloudEvent.get(CloudEventAttributeUtils.DATA);
-			structuredCloudEvent.remove(CloudEventAttributeUtils.DATA);
-		}
-		Assert.notNull(data, "'data' must not be null");
-		MessageBuilder<?> builder = MessageBuilder.withPayload(data);
-		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(structuredCloudEvent);
-		String prefixToUse = CloudEventAttributeUtils.determinePrefixToUse(originalHeaders);
-		builder.copyHeaders(getHeaders(attributes, prefixToUse));
-		builder.copyHeaders(originalHeaders);
-		return builder.build();
-	}
-
-	public static Map<String, ?> getHeaders(CloudEventAttributes attributes, String prefixToUse) {
-		Map<String, Object> result = new HashMap<>();
-		for (String key : attributes.getAttributeNames()) {
-			Object value = attributes.getAttribute(key);
-			if (value != null) {
-				result.put(prefixToUse + key, value);
-			}
-		}
-		return result;
-	}
-
+	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,
+            MessageHeaders originalHeaders) {
+	    SpringCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
+	    Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
+	    attributes.remove(attributes.getAttributeName(CloudEventAttributeUtils.DATA));
+	    return MessageBuilder.withPayload(payload)
+	            .copyHeaders(attributes)
+	            .setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID, attributes.getId())
+	            .build();
+    }
 }

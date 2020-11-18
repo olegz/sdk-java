@@ -20,7 +20,6 @@ import java.util.function.Function;
 
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
 import io.cloudevents.spring.core.SpringCloudEventAttributes;
-import io.cloudevents.spring.messaging.CloudEventMessageUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,8 +46,7 @@ public class CloudEventFunctionTests {
 		Function<Object, Object> function = this.lookup("echo", TestConfiguration.class);
 
 		Message<String> inputMessage = MessageBuilder.withPayload("{\"name\":\"Ricky\"}")
-				.copyHeaders(CloudEventMessageUtils
-						.getHeaders(CloudEventAttributeUtils.get("https://spring.io/", "org.springframework"), "ce_"))
+				.copyHeaders(CloudEventAttributeUtils.get("https://spring.io/", "org.springframework").toMessageHeaders("ce_"))
 				.build();
 		assertThat(CloudEventAttributeUtils.isBinary(inputMessage.getHeaders())).isTrue();
 
