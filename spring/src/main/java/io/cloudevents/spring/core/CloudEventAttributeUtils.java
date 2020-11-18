@@ -27,11 +27,12 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
 /**
- * Miscellaneous utility methods to deal with Cloud Events - https://cloudevents.io/. <br>
- * Primarily intended for the internal use within the framework;
+ * Miscellaneous utility methods to assist with Cloud Event attributes.
+ * Primarily intended for the internal use within Spring-based frameworks or integrations.
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @since 2.0
  */
 public final class CloudEventAttributeUtils {
 

@@ -20,10 +20,15 @@ import io.cloudevents.CloudEventAttributes;
 
 /**
  * Strategy that should be implemented by the user to help with outgoing Cloud Event
- * attributes. <br>
+ * attributes.
  * <br>
- * The provided `attributes` are already initialized with default values, so you can set
- * only the ones that you need. <br>
+ * <br>
+ * NOTE: The provided `attributes` may or may not be initialized with default values,
+ * so it is the responsibility of the user to ensure that all required Cloud Events
+ * attributes are set. That said, various Spring frameworks which utilize this interface
+ * will ensure that the 'provided' attributes are initialized with default values, leaving
+ * to responsible to only set the attributes you need.
+ * <br>
  * Once implemented, simply configure it as a bean and the framework will invoke it before
  * the outbound Cloud Event Message is finalized.
  *
@@ -37,6 +42,7 @@ import io.cloudevents.CloudEventAttributes;
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @since 2.0
  */
 @FunctionalInterface
 public interface CloudEventAttributesProvider {

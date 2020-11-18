@@ -18,6 +18,8 @@ package io.cloudevents.spring.messaging;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
 import io.cloudevents.spring.core.CloudEventAttributesProvider;
@@ -36,10 +38,11 @@ import org.springframework.util.StringUtils;
 /**
  * Miscellaneous utility methods to assist with representing Cloud Event as Spring
  * {@link Message} <br>
- * Primarily intended for the internal use within the framework;
+ * Primarily intended for the internal use within Spring-based frameworks and integrations;
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @since 2.0
  */
 public final class CloudEventMessageUtils {
 
@@ -84,7 +87,13 @@ public final class CloudEventMessageUtils {
 	}
 
 	/**
-	 * Typically called by Consumer.
+	 * Utility method to assist with creating output attributes.
+	 * <br>
+	 * Typically user by {@link Consumer}. Unlike {@link Function}
+	 * where framework(s) internally do that once the function is executed and output is produced,
+	 * Consumer does not produce any output, so from the framework perspective it is the end of the line.
+	 * However, such Consumer may want to send new Cloud Event (e.g., via HTTP or some messaging template)
+	 * and thus still requires generation of output attributes.
 	 *
 	 */
 	public static MutableCloudEventAttributes getOutputAttributes(Message<?> message,

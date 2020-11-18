@@ -26,8 +26,11 @@ import io.cloudevents.spring.core.MutableCloudEventAttributes;
 import org.springframework.http.HttpHeaders;
 
 /**
- * @author Dave Syer
+ * Miscellaneous utility methods to assist with Cloud Events in the context of Spring Web frameworks.
+ * Primarily intended for the internal use within Spring-based frameworks or integrations.
  *
+ * @author Dave Syer
+ * @since 2.0
  */
 public class CloudEventHttpUtils {
 

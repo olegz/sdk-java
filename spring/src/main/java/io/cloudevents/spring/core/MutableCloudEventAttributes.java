@@ -29,20 +29,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * Utility class to assist with accessing and setting Cloud Events attributes from headers
- * in messages and HTTP exchanges. <br>
- * <br>
- * It is effectively a wrapper over a {@link Map}. It also provides best effort to both
- * discover the actual attribute name (regardless of the prefix) as well as set
- * appropriate attribute name. <br>
- * <br>
- * For example, If there is an attribute `ce-source` or `ce_source` or 'source`, by simply
- * calling getSource() we'll discover it and will return its value. <br>
- * Similar effort will happen during the setting of the attribute. If you provide
- * {@link #prefixToUse} we will use it otherwise we'll attempt to determine based on
- * current execution context which prefix to use.
+ * in messages and HTTP exchanges.
+ *
+ * It is primarily used within various Spring frameworks.
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @since 2.0
  */
 public class MutableCloudEventAttributes implements CloudEventAttributes, Serializable {
 
