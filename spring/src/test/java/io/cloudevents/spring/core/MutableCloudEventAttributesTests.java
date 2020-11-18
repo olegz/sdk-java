@@ -35,4 +35,12 @@ public class MutableCloudEventAttributesTests {
 		assertThat(attributes.getId()).isNull();
 	}
 
+	@Test
+	void testSetAttribute() throws Exception {
+		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(Collections.emptyMap());
+		attributes.setAttribute(CloudEventAttributeUtils.ID, "A1234-1234");
+		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
+		assertThat(attributes.getId()).isEqualTo("A1234-1234");
+	}
+
 }

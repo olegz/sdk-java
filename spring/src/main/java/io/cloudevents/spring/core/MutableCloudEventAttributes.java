@@ -184,7 +184,7 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 		return result;
 	}
 
-	private MutableCloudEventAttributes setAttribute(String attrName, Object attrValue) {
+	public MutableCloudEventAttributes setAttribute(String attrName, Object attrValue) {
 		map.put(attrName, attrValue);
 		return this;
 	}
