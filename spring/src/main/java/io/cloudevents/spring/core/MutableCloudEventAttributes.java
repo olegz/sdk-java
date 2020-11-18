@@ -157,7 +157,7 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 
 	/**
 	 * Determines if this instance of {@link CloudEventAttributes} represents valid Cloud
-	 * Event. This implies that it contains all 4 required attributes (id, source, type &
+	 * Event. This implies that it contains all 4 required attributes (id, source, type and
 	 * specversion)
 	 * @return true if this instance represents a valid Cloud Event
 	 */

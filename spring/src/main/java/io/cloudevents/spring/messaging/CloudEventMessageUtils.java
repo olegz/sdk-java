@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
 import io.cloudevents.spring.core.CloudEventAttributesProvider;
 import io.cloudevents.spring.core.MutableCloudEventAttributes;
@@ -95,6 +96,9 @@ public final class CloudEventMessageUtils {
 	 * However, such Consumer may want to send new Cloud Event (e.g., via HTTP or some messaging template)
 	 * and thus still requires generation of output attributes.
 	 *
+	 * @param message instance of input {@link Message}.
+	 * @param provider instance of CloudEventAttributesProvider.
+	 * @return an instance of {@link CloudEventAttributes} as {@link MutableCloudEventAttributes}
 	 */
 	public static MutableCloudEventAttributes getOutputAttributes(Message<?> message,
 			CloudEventAttributesProvider provider) {

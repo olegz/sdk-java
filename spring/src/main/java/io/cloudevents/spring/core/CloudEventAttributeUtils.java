@@ -132,9 +132,8 @@ public final class CloudEventAttributeUtils {
 	}
 
 	/**
-	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}. This
-	 * is different then {@link #generateAttributes(Map)} where additionally missing
-	 * attributes will be set to default values.
+	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}.
+	 *
 	 * @param headers map representing headers
 	 * @return instance of {@link MutableCloudEventAttributes}
 	 */

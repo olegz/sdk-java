@@ -35,7 +35,7 @@ import io.cloudevents.CloudEventAttributes;
  * <pre>
  * &#64;Bean
  * public CloudEventAttributesProvider cloudEventAttributesProvider() {
- * 	return attributes ->
+ * 	return attributes -&gt;
  *		CloudEventAttributeUtils.get(attributes).setSource("https://interface21.com/").setType("com.interface21");
  * }
  * </pre>
@@ -49,6 +49,7 @@ public interface CloudEventAttributesProvider {
 
 	/**
 	 * @param attributes instance of {@link CloudEventAttributes}
+	 * @return instance of modified {@link CloudEventAttributes}
 	 */
 	CloudEventAttributes getOutputAttributes(CloudEventAttributes attributes);
 
