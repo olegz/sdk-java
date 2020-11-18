@@ -15,7 +15,9 @@
  */
 package io.cloudevents.spring.core;
 
+import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 import io.cloudevents.SpecVersion;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,47 @@ public class MutableCloudEventAttributesTests {
 		attributes.setAttribute(CloudEventAttributeUtils.ID, "A1234-1234");
 		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
 		assertThat(attributes.getId()).isEqualTo("A1234-1234");
+	}
+
+	@Test
+	void testV03() throws Exception {
+		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
+				Collections.singletonMap(CloudEventAttributeUtils.SPECVERSION, SpecVersion.V03));
+		attributes.setAttribute(CloudEventAttributeUtils.ID, "A1234-1234");
+		attributes.setAttribute(CloudEventAttributeUtils.SCHEMAURL, "https://schema.spring.io/ce-0.3");
+		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V03);
+		assertThat(attributes.getId()).isEqualTo("A1234-1234");
+		assertThat(attributes.getDataSchema().toString()).isEqualTo("https://schema.spring.io/ce-0.3");
+	}
+
+	@Test
+	void testV03MapWithExplicitSchema() throws Exception {
+		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
+				Collections.singletonMap(CloudEventAttributeUtils.SPECVERSION, SpecVersion.V03));
+		attributes.setId("A1234-1234");
+		attributes.setSource(URI.create("https://spring.io/"));
+		attributes.setType("org.springframework");
+		attributes.setDataSchema(URI.create("https://schema.spring.io/ce-0.3"));
+		Map<String, Object> headers = attributes.toMap("ce-");
+		assertThat(headers.get("ce-specversion")).isEqualTo("0.3");
+		assertThat(headers.get("ce-source")).isEqualTo("https://spring.io/");
+		assertThat(headers.get("ce-type")).isEqualTo("org.springframework");
+		assertThat(headers.get("ce-schemaurl")).isEqualTo("https://schema.spring.io/ce-0.3");
+	}
+
+	@Test
+	void testV03MapWithAttributeSchema() throws Exception {
+		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
+				Collections.singletonMap(CloudEventAttributeUtils.SPECVERSION, SpecVersion.V03));
+		attributes.setId("A1234-1234");
+		attributes.setSource(URI.create("https://spring.io/"));
+		attributes.setType("org.springframework");
+		attributes.setAttribute(CloudEventAttributeUtils.SCHEMAURL, "https://schema.spring.io/ce-0.3");
+		Map<String, Object> headers = attributes.toMap("ce-");
+		assertThat(headers.get("ce-specversion")).isEqualTo("0.3");
+		assertThat(headers.get("ce-source")).isEqualTo("https://spring.io/");
+		assertThat(headers.get("ce-type")).isEqualTo("org.springframework");
+		assertThat(headers.get("ce-schemaurl")).isEqualTo("https://schema.spring.io/ce-0.3");
 	}
 
 }

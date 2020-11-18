@@ -99,6 +99,11 @@ public final class CloudEventAttributeUtils {
 	public static String DATASCHEMA = "dataschema";
 
 	/**
+	 * V03 name for 'dataschema' attribute.
+	 */
+	public static final String SCHEMAURL = "schemaurl";
+
+	/**
 	 * Value for 'subject' attribute.
 	 */
 	public static String SUBJECT = "subject";

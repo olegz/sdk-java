@@ -50,10 +50,13 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 
 	private Map<String, Object> map = new HashMap<>();
 
+	boolean isV03 = false;
+
 	MutableCloudEventAttributes(Map<String, Object> headers) {
 		map.putAll(headers);
 		safe(headers, CloudEventAttributeUtils.SOURCE);
 		safe(headers, CloudEventAttributeUtils.DATASCHEMA);
+		this.isV03 = this.getSpecVersion().equals(SpecVersion.V03);
 	}
 
 	private void safe(Map<String, Object> headers, String key) {
@@ -112,13 +115,17 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	}
 
 	public MutableCloudEventAttributes setDataSchema(URI dataschema) {
-		this.setAttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema);
+		this.setAttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema.toString());
 		return this;
 	}
 
 	@Override
 	public URI getDataSchema() {
-		return (URI) this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
+		Object value = this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
+		if (value == null && this.getSpecVersion() == SpecVersion.V03) {
+			value = this.getAttribute(CloudEventAttributeUtils.SCHEMAURL);
+		}
+		return value == null ? null : URI.create((String) value);
 	}
 
 	public MutableCloudEventAttributes setSubject(String subject) {
@@ -148,6 +155,10 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	 */
 	@Override
 	public Object getAttribute(String attributeName) {
+		if (isV03 && CloudEventAttributeUtils.SCHEMAURL.equals(attributeName)
+				&& map.containsKey(CloudEventAttributeUtils.DATASCHEMA)) {
+			return map.get(CloudEventAttributeUtils.DATASCHEMA);
+		}
 		return map.get(attributeName);
 	}
 
