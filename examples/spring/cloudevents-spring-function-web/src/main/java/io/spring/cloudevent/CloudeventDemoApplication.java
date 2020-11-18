@@ -17,31 +17,24 @@
 package io.spring.cloudevent;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.function.cloudevent.CloudEventAttributesProvider;
-import org.springframework.cloud.function.cloudevent.CloudEventMessageUtils;
-import org.springframework.cloud.function.web.util.HeaderUtils;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.RequestEntity;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
+
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.CloudEventAttributesProvider;
 
 /**
- * Sample application that demonstrates how user functions can be triggered by cloud event.
- * Events can come from anywhere (e.g., HTTP, Messaging, RSocket etc).
- * Given that this particular sample comes already with spring-cloud-function-web support each
- * function is a valid REST endpoint where function name signifies URL path (e.g., http://localhost:8080/asPOJOMessage).
+ * Sample application that demonstrates how user functions can be triggered
+ * by cloud event.
+ * Given that this particular sample based on spring-cloud-function-web
+ * support the function itself is a valid REST endpoint where function name
+ * signifies URL path (e.g., http://localhost:8080/pojoToPojo).
  *
- * Simply start the application and post cloud event to individual function - (see individual 'curl' command at each function).
+ * Simply start the application and post cloud event to individual
+ * function - (see README for instructions)
  *
  * You can also run CloudeventDemoApplicationTests.
  *
@@ -51,100 +44,22 @@ import org.springframework.util.Assert;
 @SpringBootApplication
 public class CloudeventDemoApplication {
 
-	boolean consumerSuccess;
-
 	public static void main(String[] args) throws Exception {
 	    SpringApplication.run(CloudeventDemoApplication.class, args);
 	}
 
-	@Bean
-	public Function<Message<String>, String> asStringMessage() {
-		return v -> {
-			System.out.println("Received Cloud Event with raw data: " + v);
-			return v.getPayload();
-		};
-	}
-
-
-	@Bean
-	public Function<String, String> asString() {
-		return v -> {
-			System.out.println("Received raw Cloud Event data: " + v);
-			return v;
-		};
-	}
-
-
-	@Bean
-	public Function<Message<SpringReleaseEvent>, String> asPOJOMessage() {
-		return v -> {
-			System.out.println("Received Cloud Event with POJO data: " + v);
-			return v.getPayload().toString();
-		};
-	}
-
-
-	@Bean
-	public Function<SpringReleaseEvent, String> asPOJO() {
-		return v -> {
-			System.out.println("Received POJO Cloud Event data: " + v);
-			return v.toString();
-		};
-	}
-
-	@Bean
-	public Function<Message<SpringReleaseEvent>, Message<SpringReleaseEvent>> consumeAndProduceCloudEvent() {
-		return ceMessage -> {
-			SpringReleaseEvent data = ceMessage.getPayload();
-			data.setVersion("2.0");
-			data.setReleaseDateAsString("01-10-2006");
-
-			return MessageBuilder.withPayload(data).build();
-		};
-	}
-
-	@Bean
+	/*
+	 * This strategy will be called internally by Spring to set Cloud Event output attributes
+	 */
+//	@Bean
 	public CloudEventAttributesProvider cloudEventAttributesProvider() {
-		return attributes -> {
-			attributes.setSource("https://interface21.com/").setType("com.interface21");
-		};
-	}
-
-
-	@Bean
-	public Function<Map<String, Object>, Map<String, Object>> consumeAndProduceCloudEventAsMapToMap() {
-		return ceMessage -> {
-			ceMessage.put("version", "10.0");
-			ceMessage.put("releaseDate", "01-10-2050");
-			return ceMessage;
-		};
+		return attributes -> CloudEventAttributeUtils.toMutable(attributes)
+		            .setSource(URI.create("https://interface21.com/"))
+		            .setType("com.interface21");
 	}
 
 	@Bean
-	public Function<SpringReleaseEvent, SpringReleaseEvent> consumeAndProduceCloudEventAsPojoToPojo() {
-		return event -> {
-			event.setVersion("2.0");
-			return event;
-		};
+	public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
+		return event -> event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
 	}
-
-	@Bean
-	public Consumer<Message<SpringReleaseEvent>> pojoConsumer(CloudEventAttributesProvider provider, RestTemplateBuilder builder) {
-			return eventMessage -> {
-				RequestEntity<SpringReleaseEvent> entity = RequestEntity.post(URI.create("http://foo.com"))
-						.headers(HeaderUtils.fromMessage(
-								new MessageHeaders(CloudEventMessageUtils.generateAttributes(eventMessage, provider))))
-						.body(eventMessage.getPayload());
-				List<String> sourceHeader = entity.getHeaders().get("ce-source");
-				Assert.isTrue(sourceHeader.get(0).equals("https://interface21.com/"), "'source' must be https://interface21.com/");
-				List<String> typeHeader = entity.getHeaders().get("ce-type");
-				Assert.isTrue(typeHeader.get(0).equals("com.interface21"), "'source' must be com.interface21");
-				List<String> idHeader = entity.getHeaders().get("ce-id");
-				Assert.notEmpty(idHeader, "'id' must not be null");
-				List<String> specversionHeader = entity.getHeaders().get("ce-specversion");
-				Assert.notEmpty(specversionHeader, "'specversion' must not be null");
-				this.consumerSuccess = true;
-			};
-	}
-
 }
