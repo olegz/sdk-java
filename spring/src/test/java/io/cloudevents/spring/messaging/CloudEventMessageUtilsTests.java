@@ -41,7 +41,7 @@ public class CloudEventMessageUtilsTests {
 	public void testGenerateAttributes() {
 		Message<String> message = MessageBuilder.withPayload("Hello")
 				.copyHeaders(CloudEventAttributeUtils
-						.toMutableAttributes(new CloudEventBuilder().withId("A234-1234-1234")
+						.toMutable(new CloudEventBuilder().withId("A234-1234-1234")
 								.withSource(URI.create("https://spring.io/")).withType("org.springframework").build())
 						.toMap("ce_"))
 				.build();

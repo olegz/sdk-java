@@ -119,7 +119,7 @@ public final class CloudEventAttributeUtils {
 	 * @param attributes input CloudEventAttributes
 	 * @return a mutable instance with the same attributes
 	 */
-	public static MutableCloudEventAttributes toMutableAttributes(CloudEventAttributes attributes) {
+	public static MutableCloudEventAttributes toMutable(CloudEventAttributes attributes) {
 		if (attributes instanceof MutableCloudEventAttributes) {
 			return (MutableCloudEventAttributes) attributes;
 		}

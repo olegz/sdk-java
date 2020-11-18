@@ -92,7 +92,7 @@ public final class CloudEventMessageUtils {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(message.getHeaders())
 				.setId(message.getHeaders().getId().toString())
 				.setType(message.getPayload().getClass().getName().getClass().getName());
-		return CloudEventAttributeUtils.toMutableAttributes(provider.getOutputAttributes(attributes));
+		return CloudEventAttributeUtils.toMutable(provider.getOutputAttributes(attributes));
 	}
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,

@@ -56,7 +56,7 @@ public class CloudEventAttributeUtilsTests {
 	@Test
 	public void testWithNative() {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
-				.toMutableAttributes(new CloudEventBuilder().withId("A234-1234-1234")
+				.toMutable(new CloudEventBuilder().withId("A234-1234-1234")
 						.withSource(URI.create("https://spring.io/")).withType("org.springframework").build());
 		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
 		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
@@ -67,7 +67,7 @@ public class CloudEventAttributeUtilsTests {
 	@Test
 	public void testToHeadersNoPrefix() {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
-				.toMutableAttributes(new CloudEventBuilder().withId("A234-1234-1234")
+				.toMutable(new CloudEventBuilder().withId("A234-1234-1234")
 						.withSource(URI.create("https://spring.io/")).withType("org.springframework").build());
 		Map<String, Object> headers = attributes.toMap(null);
 		assertThat(headers.get("id")).isEqualTo("A234-1234-1234");
@@ -79,7 +79,7 @@ public class CloudEventAttributeUtilsTests {
 	@Test
 	public void testToHeaders() {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
-				.toMutableAttributes(new CloudEventBuilder().withId("A234-1234-1234")
+				.toMutable(new CloudEventBuilder().withId("A234-1234-1234")
 						.withSource(URI.create("https://spring.io/")).withType("org.springframework").build());
 		Map<String, Object> headers = attributes.toMap("ce-");
 		assertThat(headers.get("ce-id")).isEqualTo("A234-1234-1234");
