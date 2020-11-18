@@ -16,7 +16,11 @@
 
 package io.cloudevents.spring.messaging;
 
+import java.util.Collections;
 import java.util.Map;
+
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.SpringCloudEventAttributes;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -28,12 +32,9 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.SpringCloudEventAttributes;
-
 /**
- * Miscellaneous utility methods to assist with representing Cloud Event as Spring {@link Message}
- * <br>
+ * Miscellaneous utility methods to assist with representing Cloud Event as Spring
+ * {@link Message} <br>
  * Primarily intended for the internal use within the framework;
  *
  * @author Oleg Zhurakousky
@@ -82,13 +83,18 @@ public final class CloudEventMessageUtils {
 	}
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,
-            MessageHeaders originalHeaders) {
-	    SpringCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
-	    Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
-	    attributes.remove(attributes.getAttributeName(CloudEventAttributeUtils.DATA));
-	    return MessageBuilder.withPayload(payload)
-	            .copyHeaders(attributes)
-	            .setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID, attributes.getId())
-	            .build();
-    }
+			MessageHeaders originalHeaders) {
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
+		Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
+		if (payload == null) {
+			payload = Collections.emptyMap();
+		}
+		attributes.remove(CloudEventAttributeUtils.DATA);
+		return MessageBuilder.withPayload(payload)
+				.copyHeaders(attributes.toMessageHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
+				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID,
+						attributes.getId())
+				.build();
+	}
+
 }

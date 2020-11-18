@@ -19,9 +19,11 @@ package io.cloudevents.spring.core;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import io.cloudevents.CloudEventAttributes;
+import io.cloudevents.SpecVersion;
 import io.cloudevents.lang.Nullable;
 
 import org.springframework.messaging.Message;
@@ -57,9 +59,9 @@ public final class CloudEventAttributeUtils {
 	public static String DEFAULT_ATTR_PREFIX = "ce_";
 
 	/**
-     * AMQP attributes prefix.
-     */
-    public static String AMQP_ATTR_PREFIX = "cloudEvents:";
+	 * AMQP attributes prefix.
+	 */
+	public static String AMQP_ATTR_PREFIX = "cloudEvents:";
 
 	/**
 	 * Prefix for attributes.
@@ -112,9 +114,8 @@ public final class CloudEventAttributeUtils {
 	public static String TIME = "time";
 
 	/**
-	 * Checks if provided headers represent cloud event in binary-mode.
-	 * This effectively implies that provided headers have all the required
-	 * Cloud Event attributes set.
+	 * Checks if provided headers represent cloud event in binary-mode. This effectively
+	 * implies that provided headers have all the required Cloud Event attributes set.
 	 */
 	public static boolean isBinary(Map<String, Object> headers) {
 		SpringCloudEventAttributes attributes = generateAttributes(headers);
@@ -156,20 +157,20 @@ public final class CloudEventAttributeUtils {
 	}
 
 	/**
-	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes}.
-	 * This is different then {@link #generateAttributes(Map)} where additionally missing
+	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes}. This
+	 * is different then {@link #generateAttributes(Map)} where additionally missing
 	 * attributes will be set to default values.
-	 *
 	 * @param headers map representing headers
 	 * @return instance of {@link SpringCloudEventAttributes}
 	 */
 	public static SpringCloudEventAttributes wrap(Map<String, Object> headers) {
-	    return new SpringCloudEventAttributes(headers);
+		Map<String, Object> attributes = extractAttributes(headers);
+		return new SpringCloudEventAttributes(attributes);
 	}
 
 	/**
-	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes} filling in the
-	 * missing required attributes with default values.
+	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes} filling
+	 * in the missing required attributes with default values.
 	 * @param headers map representing headers
 	 * @return instance of {@link SpringCloudEventAttributes}
 	 */
@@ -181,15 +182,15 @@ public final class CloudEventAttributeUtils {
 	}
 
 	/**
-     * Typically called by Consumer.
-     *
-     */
-    public static SpringCloudEventAttributes generateAttributes(Message<?> message,
-            CloudEventAttributesProvider provider) {
-        SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
-                .setType(message.getPayload().getClass().getName().getClass().getName());
-        return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
-    }
+	 * Typically called by Consumer.
+	 *
+	 */
+	public static SpringCloudEventAttributes generateAttributes(Message<?> message,
+			CloudEventAttributesProvider provider) {
+		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
+				.setType(message.getPayload().getClass().getName().getClass().getName());
+		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
+	}
 
 	private static SpringCloudEventAttributes generateDefaultAttributeValues(SpringCloudEventAttributes attributes,
 			@Nullable String source, @Nullable String type) {
@@ -206,21 +207,56 @@ public final class CloudEventAttributeUtils {
 	}
 
 	private static SpringCloudEventAttributes get(CloudEventAttributes attributes) {
-        if (attributes instanceof SpringCloudEventAttributes) {
-            return (SpringCloudEventAttributes) attributes;
-        }
-        SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>());
-        return instance;
-    }
+		if (attributes instanceof SpringCloudEventAttributes) {
+			return (SpringCloudEventAttributes) attributes;
+		}
+		SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>());
+		return instance;
+	}
 
+	private static String determinePrefixToUse(Map<String, Object> messageHeaders) {
+		Set<String> keys = messageHeaders.keySet();
+		if (keys.contains("user-agent")
+				|| keys.contains(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
+		}
+		else if (keys.contains(CloudEventAttributeUtils.AMQP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+			return CloudEventAttributeUtils.AMQP_ATTR_PREFIX;
+		}
+		else if (keys.contains(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+			return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
+		}
+		return "";
+	}
 
-//  public static String determinePrefixToUse(Map<String, Object> messageHeaders) {
-//      Set<String> keys = messageHeaders.keySet();
-//      if (keys.contains("user-agent")) {
-//          return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
-//      }
-//      else {
-//          return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
-//      }
-//  }
+	private static Map<String, Object> extractAttributes(Map<String, Object> headers) {
+		String prefix = determinePrefixToUse(headers);
+		SpecVersion specVersion = extractSpecVersion(headers, prefix);
+		Map<String, Object> result = new HashMap<>();
+		for (String name : specVersion.getAllAttributes()) {
+			if (headers.containsKey(prefix + name)) {
+				result.put(name, headers.get(prefix + name));
+			}
+		}
+		result.put(CloudEventAttributeUtils.SPECVERSION, specVersion.toString());
+		if (headers.containsKey(prefix + CloudEventAttributeUtils.DATA)) {
+			result.put(CloudEventAttributeUtils.DATA, headers.get(prefix + CloudEventAttributeUtils.DATA));
+		}
+		return result;
+	}
+
+	private static SpecVersion extractSpecVersion(Map<String, Object> headers, String prefix) {
+		String key = prefix + CloudEventAttributeUtils.SPECVERSION;
+		if (headers.containsKey(key)) {
+			Object object = headers.get(key);
+			if (object instanceof SpecVersion) {
+				return (SpecVersion) object;
+			}
+			if (object != null) {
+				return SpecVersion.parse(object.toString());
+			}
+		}
+		return SpecVersion.V1;
+	}
+
 }
