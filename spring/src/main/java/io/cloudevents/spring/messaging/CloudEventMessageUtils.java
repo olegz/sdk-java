@@ -103,6 +103,7 @@ public final class CloudEventMessageUtils {
 		}
 		return MessageBuilder.withPayload(payload)
 				.copyHeaders(attributes.toMessageHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
+				.copyHeaders(originalHeaders)
 				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID,
 						attributes.getId())
 				.build();
