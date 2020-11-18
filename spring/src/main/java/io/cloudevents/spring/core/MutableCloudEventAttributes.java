@@ -16,6 +16,7 @@
 
 package io.cloudevents.spring.core;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -25,12 +26,11 @@ import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**
- * Utility class to assist with accessing and setting Cloud Events attributes from
- * {@link MessageHeaders}. <br>
+ * Utility class to assist with accessing and setting Cloud Events attributes from headers
+ * in messages and HTTP exchanges. <br>
  * <br>
  * It is effectively a wrapper over a {@link Map}. It also provides best effort to both
  * discover the actual attribute name (regardless of the prefix) as well as set
@@ -45,12 +45,14 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
-public class SpringCloudEventAttributes extends HashMap<String, Object> implements CloudEventAttributes {
+public class MutableCloudEventAttributes implements CloudEventAttributes, Serializable {
 
 	private static final long serialVersionUID = 5393610770855366497L;
 
-	SpringCloudEventAttributes(Map<String, Object> headers) {
-		super(headers);
+	private Map<String, Object> map = new HashMap<>();
+
+	MutableCloudEventAttributes(Map<String, Object> headers) {
+		map.putAll(headers);
 		safe(headers, CloudEventAttributeUtils.SOURCE);
 		safe(headers, CloudEventAttributeUtils.DATASCHEMA);
 	}
@@ -58,22 +60,22 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	private void safe(Map<String, Object> headers, String key) {
 		Object value = headers.get(key);
 		if (value != null) {
-			put(key, value.toString());
+			map.put(key, value.toString());
 		}
 	}
 
-	public SpringCloudEventAttributes setSpecVersion(String specversion) {
+	public MutableCloudEventAttributes setSpecVersion(SpecVersion specversion) {
 		this.setAttribute(CloudEventAttributeUtils.SPECVERSION, specversion);
 		return this;
 	}
 
 	@Override
 	public SpecVersion getSpecVersion() {
-		String specVersion = (String) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
-		return specVersion == null ? SpecVersion.V1 : SpecVersion.parse(specVersion);
+		SpecVersion specVersion = (SpecVersion) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
+		return specVersion == null ? SpecVersion.V1 : specVersion;
 	}
 
-	public SpringCloudEventAttributes setId(String id) {
+	public MutableCloudEventAttributes setId(String id) {
 		this.setAttribute(CloudEventAttributeUtils.ID, id);
 		return this;
 	}
@@ -84,7 +86,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return id == null ? null : id.toString();
 	}
 
-	public SpringCloudEventAttributes setType(String type) {
+	public MutableCloudEventAttributes setType(String type) {
 		this.setAttribute(CloudEventAttributeUtils.TYPE, type);
 		return this;
 	}
@@ -94,7 +96,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return (String) this.getAttribute(CloudEventAttributeUtils.TYPE);
 	}
 
-	public SpringCloudEventAttributes setSource(URI source) {
+	public MutableCloudEventAttributes setSource(URI source) {
 		this.setAttribute(CloudEventAttributeUtils.SOURCE, source.toString());
 		return this;
 	}
@@ -105,7 +107,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return value == null ? null : URI.create((String) value);
 	}
 
-	public SpringCloudEventAttributes setDataContentType(String datacontenttype) {
+	public MutableCloudEventAttributes setDataContentType(String datacontenttype) {
 		this.setAttribute(CloudEventAttributeUtils.DATACONTENTTYPE, datacontenttype);
 		return this;
 	}
@@ -115,7 +117,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return (String) this.getAttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
 	}
 
-	public SpringCloudEventAttributes setDataSchema(URI dataschema) {
+	public MutableCloudEventAttributes setDataSchema(URI dataschema) {
 		this.setAttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema);
 		return this;
 	}
@@ -125,7 +127,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return (URI) this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
 	}
 
-	public SpringCloudEventAttributes setSubject(String subject) {
+	public MutableCloudEventAttributes setSubject(String subject) {
 		this.setAttribute(CloudEventAttributeUtils.SUBJECT, subject);
 		return this;
 	}
@@ -135,7 +137,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return (String) this.getAttribute(CloudEventAttributeUtils.SUBJECT);
 	}
 
-	public SpringCloudEventAttributes setTime(String time) {
+	public MutableCloudEventAttributes setTime(String time) {
 		this.setAttribute(CloudEventAttributeUtils.TIME, time);
 		return this;
 	}
@@ -152,7 +154,7 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	 */
 	@Override
 	public Object getAttribute(String attributeName) {
-		return this.get(attributeName);
+		return map.get(attributeName);
 	}
 
 	/**
@@ -163,8 +165,8 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 	 */
 	public boolean isValidCloudEvent() {
 		return StringUtils.hasText(this.getId()) && this.getSource() != null
-				&& StringUtils.hasText(this.getSource().toString())
-				&& StringUtils.hasText(this.getSpecVersion().toString()) && StringUtils.hasText(this.getType());
+				&& StringUtils.hasText(this.getSource().toString()) && this.getSpecVersion() != null
+				&& StringUtils.hasText(this.getType());
 	}
 
 	/**
@@ -184,8 +186,8 @@ public class SpringCloudEventAttributes extends HashMap<String, Object> implemen
 		return result;
 	}
 
-	private SpringCloudEventAttributes setAttribute(String attrName, Object attrValue) {
-		this.put(attrName, attrValue);
+	private MutableCloudEventAttributes setAttribute(String attrName, Object attrValue) {
+		map.put(attrName, attrValue);
 		return this;
 	}
 

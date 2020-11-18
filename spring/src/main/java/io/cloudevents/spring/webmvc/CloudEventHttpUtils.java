@@ -20,7 +20,7 @@ import java.util.Map;
 
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.SpringCloudEventAttributes;
+import io.cloudevents.spring.core.MutableCloudEventAttributes;
 
 import org.springframework.http.HttpHeaders;
 
@@ -42,7 +42,7 @@ public class CloudEventHttpUtils {
 		return headers;
 	}
 
-	public static SpringCloudEventAttributes fromHttp(HttpHeaders headers) {
+	public static MutableCloudEventAttributes fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(headers.toSingleValueMap());
 		return CloudEventAttributeUtils.generateAttributes(map);

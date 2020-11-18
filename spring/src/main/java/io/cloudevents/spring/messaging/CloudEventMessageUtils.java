@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.SpringCloudEventAttributes;
+import io.cloudevents.spring.core.MutableCloudEventAttributes;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -51,7 +51,7 @@ public final class CloudEventMessageUtils {
 	@SuppressWarnings("unchecked")
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
 		Map<String, Object> headers = inputMessage.getHeaders();
-		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(headers);
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(headers);
 
 		// first check the obvious and see if content-type is `cloudevents`
 		if (!attributes.isValidCloudEvent() && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
@@ -84,12 +84,11 @@ public final class CloudEventMessageUtils {
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,
 			MessageHeaders originalHeaders) {
-		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(structuredCloudEvent);
 		Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
 		if (payload == null) {
 			payload = Collections.emptyMap();
 		}
-		attributes.remove(CloudEventAttributeUtils.DATA);
 		return MessageBuilder.withPayload(payload)
 				.copyHeaders(attributes.toMessageHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
 				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID,

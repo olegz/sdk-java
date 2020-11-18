@@ -118,7 +118,7 @@ public final class CloudEventAttributeUtils {
 	 * implies that provided headers have all the required Cloud Event attributes set.
 	 */
 	public static boolean isBinary(Map<String, Object> headers) {
-		SpringCloudEventAttributes attributes = generateAttributes(headers);
+		MutableCloudEventAttributes attributes = generateAttributes(headers);
 		return attributes.isValidCloudEvent();
 	}
 
@@ -131,7 +131,7 @@ public final class CloudEventAttributeUtils {
 	 * @param ce_type value for Cloud Event 'type' attribute
 	 * @return instance of {@link CloudEventAttributes}
 	 */
-	public static SpringCloudEventAttributes get(String ce_id, String ce_specversion, String ce_source,
+	public static MutableCloudEventAttributes get(String ce_id, String ce_specversion, String ce_source,
 			String ce_type) {
 		Assert.hasText(ce_id, "'ce_id' must not be null or empty");
 		Assert.hasText(ce_specversion, "'ce_specversion' must not be null or empty");
@@ -139,10 +139,10 @@ public final class CloudEventAttributeUtils {
 		Assert.hasText(ce_type, "'ce_type' must not be null or empty");
 		Map<String, Object> requiredAttributes = new HashMap<>();
 		requiredAttributes.put(CloudEventAttributeUtils.ID, ce_id);
-		requiredAttributes.put(CloudEventAttributeUtils.SPECVERSION, ce_specversion);
+		requiredAttributes.put(CloudEventAttributeUtils.SPECVERSION, SpecVersion.parse(ce_specversion));
 		requiredAttributes.put(CloudEventAttributeUtils.SOURCE, ce_source);
 		requiredAttributes.put(CloudEventAttributeUtils.TYPE, ce_type);
-		return new SpringCloudEventAttributes(requiredAttributes);
+		return new MutableCloudEventAttributes(requiredAttributes);
 	}
 
 	/**
@@ -152,31 +152,31 @@ public final class CloudEventAttributeUtils {
 	 * @param ce_type value for Cloud Event 'type' attribute
 	 * @return instance of {@link CloudEventAttributes}
 	 */
-	public static SpringCloudEventAttributes get(String ce_source, String ce_type) {
+	public static MutableCloudEventAttributes get(String ce_source, String ce_type) {
 		return get(UUID.randomUUID().toString(), "1.0", ce_source, ce_type);
 	}
 
 	/**
-	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes}. This
+	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}. This
 	 * is different then {@link #generateAttributes(Map)} where additionally missing
 	 * attributes will be set to default values.
 	 * @param headers map representing headers
-	 * @return instance of {@link SpringCloudEventAttributes}
+	 * @return instance of {@link MutableCloudEventAttributes}
 	 */
-	public static SpringCloudEventAttributes wrap(Map<String, Object> headers) {
+	public static MutableCloudEventAttributes wrap(Map<String, Object> headers) {
 		Map<String, Object> attributes = extractAttributes(headers);
-		return new SpringCloudEventAttributes(attributes);
+		return new MutableCloudEventAttributes(attributes);
 	}
 
 	/**
-	 * Will wrap the provided map of headers as {@link SpringCloudEventAttributes} filling
-	 * in the missing required attributes with default values.
+	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}
+	 * filling in the missing required attributes with default values.
 	 * @param headers map representing headers
-	 * @return instance of {@link SpringCloudEventAttributes}
+	 * @return instance of {@link MutableCloudEventAttributes}
 	 */
-	public static SpringCloudEventAttributes generateAttributes(Map<String, Object> headers) {
-		SpringCloudEventAttributes attributes = wrap(headers);
-		SpringCloudEventAttributes newAttr = generateDefaultAttributeValues(attributes,
+	public static MutableCloudEventAttributes generateAttributes(Map<String, Object> headers) {
+		MutableCloudEventAttributes attributes = wrap(headers);
+		MutableCloudEventAttributes newAttr = generateDefaultAttributeValues(attributes,
 				attributes.getSource() == null ? null : attributes.getSource().toString(), attributes.getType());
 		return newAttr;
 	}
@@ -185,14 +185,14 @@ public final class CloudEventAttributeUtils {
 	 * Typically called by Consumer.
 	 *
 	 */
-	public static SpringCloudEventAttributes generateAttributes(Message<?> message,
+	public static MutableCloudEventAttributes generateAttributes(Message<?> message,
 			CloudEventAttributesProvider provider) {
-		SpringCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.generateAttributes(message.getHeaders())
 				.setType(message.getPayload().getClass().getName().getClass().getName());
 		return CloudEventAttributeUtils.get(provider.generateOutputAttributes(attributes));
 	}
 
-	private static SpringCloudEventAttributes generateDefaultAttributeValues(SpringCloudEventAttributes attributes,
+	private static MutableCloudEventAttributes generateDefaultAttributeValues(MutableCloudEventAttributes attributes,
 			@Nullable String source, @Nullable String type) {
 		if (attributes.isValidCloudEvent()) {
 			if (source != null) {
@@ -206,11 +206,11 @@ public final class CloudEventAttributeUtils {
 		return attributes;
 	}
 
-	private static SpringCloudEventAttributes get(CloudEventAttributes attributes) {
-		if (attributes instanceof SpringCloudEventAttributes) {
-			return (SpringCloudEventAttributes) attributes;
+	private static MutableCloudEventAttributes get(CloudEventAttributes attributes) {
+		if (attributes instanceof MutableCloudEventAttributes) {
+			return (MutableCloudEventAttributes) attributes;
 		}
-		SpringCloudEventAttributes instance = new SpringCloudEventAttributes(new HashMap<>());
+		MutableCloudEventAttributes instance = new MutableCloudEventAttributes(new HashMap<>());
 		return instance;
 	}
 
@@ -238,7 +238,7 @@ public final class CloudEventAttributeUtils {
 				result.put(name, headers.get(prefix + name));
 			}
 		}
-		result.put(CloudEventAttributeUtils.SPECVERSION, specVersion.toString());
+		result.put(CloudEventAttributeUtils.SPECVERSION, specVersion);
 		if (headers.containsKey(prefix + CloudEventAttributeUtils.DATA)) {
 			result.put(CloudEventAttributeUtils.DATA, headers.get(prefix + CloudEventAttributeUtils.DATA));
 		}
