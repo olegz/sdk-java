@@ -16,10 +16,11 @@
 package io.cloudevents.spring.http;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
 import io.cloudevents.spring.core.MutableCloudEventAttributes;
-import io.cloudevents.spring.http.CloudEventHttpUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,35 @@ class RestControllerTests {
 				.body("{\"value\":\"Dave\"}"), String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("{\"value\":\"Dave\"}");
+
+		HttpHeaders headers = response.getHeaders();
+
+		assertThat(headers).containsKey("ce-id");
+		assertThat(headers).containsKey("ce-source");
+		assertThat(headers).containsKey("ce-type");
+
+		// assertThat(headers.getFirst("ce-id")).isNotEqualTo("12345");
+		assertThat(headers.getFirst("ce-type")).isEqualTo("io.spring.event.Foo");
+		assertThat(headers.getFirst("ce-source")).isEqualTo("https://spring.io/foos");
+
+	}
+
+	@Test
+	void structured() {
+
+		ResponseEntity<String> response = rest.exchange(RequestEntity.post(URI.create("http://localhost:" + port + "/")) //
+				.contentType(new MediaType("application", "cloudevents+json")) //
+				.body("{" //
+						+ "\"id\":\"12345\"," //
+						+ "\"specversion\":\"1.0\"," //
+						+ "\"type\":\"io.spring.event\"," //
+						+ "\"source\":\"https://spring.io/events\"," //
+						+ "\"data\":{\"value\":\"Dave\"}}"),
+				String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("{\"value\":\"Dave\"}");
 
 		HttpHeaders headers = response.getHeaders();
 
@@ -89,6 +119,16 @@ class RestControllerTests {
 					.setType("io.spring.event.Foo");
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
 			return ResponseEntity.ok().headers(outgoing).body(foo);
+		}
+
+		@PostMapping(path = "/", consumes = "application/cloudevents+json")
+		public ResponseEntity<Object> structured(@RequestBody Map<String, Object> body,
+				@RequestHeader HttpHeaders headers) {
+			MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(body)
+					.setId(UUID.randomUUID().toString()).setSource(URI.create("https://spring.io/foos"))
+					.setType("io.spring.event.Foo");
+			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
+			return ResponseEntity.ok().headers(outgoing).body(body.get(CloudEventAttributeUtils.DATA));
 		}
 
 	}
