@@ -99,7 +99,7 @@ public class CloudEventMessageUtilsTests {
 		assertThat(binaryMessage.getHeaders().containsKey("ce-data")).isFalse();
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
 
-		Map headers = attributes.toMessageHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX);
+		Map headers = attributes.toHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID))
 				.isEqualTo("A234-1234-1234");
 		assertThat(headers.get(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.SOURCE))
@@ -116,7 +116,7 @@ public class CloudEventMessageUtilsTests {
 		assertThat(binaryMessage.getHeaders().containsKey("data")).isFalse();
 		attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
 
-		headers = attributes.toMessageHeaders(CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
+		headers = attributes.toHeaders(CloudEventAttributeUtils.HTTP_ATTR_PREFIX);
 		assertThat(headers.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID))
 				.isEqualTo("A234-1234-1234");
 		assertThat(headers.get(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.SOURCE))

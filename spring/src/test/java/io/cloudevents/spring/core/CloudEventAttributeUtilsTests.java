@@ -58,7 +58,7 @@ public class CloudEventAttributeUtilsTests {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
 				.get(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
 						.withType("org.springframework").build());
-		Map<String, Object> headers = attributes.toMessageHeaders(null);
+		Map<String, Object> headers = attributes.toHeaders(null);
 		assertThat(headers.get("id")).isEqualTo("A234-1234-1234");
 		assertThat(headers.get("specversion")).isEqualTo("1.0");
 		assertThat(headers.get("source")).isEqualTo("https://spring.io/");
@@ -70,7 +70,7 @@ public class CloudEventAttributeUtilsTests {
 		MutableCloudEventAttributes attributes = CloudEventAttributeUtils
 				.get(new CloudEventBuilder().withId("A234-1234-1234").withSource(URI.create("https://spring.io/"))
 						.withType("org.springframework").build());
-		Map<String, Object> headers = attributes.toMessageHeaders("ce-");
+		Map<String, Object> headers = attributes.toHeaders("ce-");
 		assertThat(headers.get("ce-id")).isEqualTo("A234-1234-1234");
 		assertThat(headers).doesNotContainKey("id");
 		assertThat(headers.get("ce-specversion")).isEqualTo("1.0");

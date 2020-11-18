@@ -25,7 +25,6 @@ import java.util.Map;
 import io.cloudevents.CloudEventAttributes;
 import io.cloudevents.SpecVersion;
 
-import org.springframework.messaging.Message;
 import org.springframework.util.StringUtils;
 
 /**
@@ -170,12 +169,12 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	}
 
 	/**
-	 * Will convert these attributes to {@link Map} of Spring {@link Message} headers
-	 * where each attribute will be prefixed with the value of 'prefixToUse'.
+	 * Will convert these attributes to {@link Map} of headers where each attribute will
+	 * be prefixed with the value of 'prefixToUse'.
 	 * @param prefixToUse prefix to be used on attributes
-	 * @return map of Spring's {@link Message} headers.
+	 * @return map of headers.
 	 */
-	public Map<String, Object> toMessageHeaders(String prefixToUse) {
+	public Map<String, Object> toHeaders(String prefixToUse) {
 		Map<String, Object> result = new HashMap<>();
 		if (!StringUtils.hasText(prefixToUse)) {
 			prefixToUse = "";

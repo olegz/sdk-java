@@ -102,7 +102,7 @@ public final class CloudEventMessageUtils {
 			payload = Collections.emptyMap();
 		}
 		return MessageBuilder.withPayload(payload)
-				.copyHeaders(attributes.toMessageHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
+				.copyHeaders(attributes.toHeaders(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
 				.copyHeaders(originalHeaders)
 				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID,
 						attributes.getId())
