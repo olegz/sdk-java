@@ -72,6 +72,24 @@ public class CloudEventMessageUtilsTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	public void testStructuredToBinaryWithPrefixAndUserAgent() {
+		Message<String> structuredMessage = MessageBuilder.withPayload(payloadWithHttpPrefix)
+				.setHeader(MessageHeaders.CONTENT_TYPE,
+						CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
+				.setHeader("user-agent", "oleg").build();
+
+		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		Message<Map<String, Object>> binaryMessage = (Message<Map<String, Object>>) CloudEventMessageUtils
+				.toBinary(structuredMessage, converter);
+		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.wrap(binaryMessage.getHeaders());
+		assertThat(attributes.getId()).isEqualTo("A234-1234-1234");
+		assertThat(attributes.getSource()).isEqualTo(URI.create("https://spring.io/"));
+		assertThat(attributes.getType()).isEqualTo("org.springframework");
+		assertThat(attributes.getDataContentType()).isEqualTo("application/json");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
 	public void testStructuredToBinaryNoPrefix() {
 		Message<String> structuredMessage = MessageBuilder.withPayload(payloadNoPrefix).setHeader(
 				MessageHeaders.CONTENT_TYPE, CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json").build();

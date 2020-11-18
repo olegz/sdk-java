@@ -144,15 +144,17 @@ public final class CloudEventAttributeUtils {
 
 	private static String determinePrefixToUse(Map<String, Object> messageHeaders) {
 		Set<String> keys = messageHeaders.keySet();
-		if (keys.contains("user-agent")
-				|| keys.contains(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+		if (keys.contains(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+			return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
+		}
+		else if (keys.contains(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
 			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
 		}
 		else if (keys.contains(CloudEventAttributeUtils.AMQP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
 			return CloudEventAttributeUtils.AMQP_ATTR_PREFIX;
 		}
-		else if (keys.contains(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
-			return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
+		else if (keys.contains("user-agent")) {
+			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
 		}
 		return "";
 	}
