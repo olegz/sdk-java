@@ -19,8 +19,12 @@
     </properties>
 
     <dependencies>
-    
-         <!-- Kafka - only needed if you intend to invoke via RabbitMQ -->
+        <dependency>
+            <groupId>io.cloudevents</groupId>
+            <artifactId>cloudevents-spring</artifactId>
+             <version>${project.version}</version>
+        </dependency>
+         <!-- Kafka - needed to bind functions to Kafka topics -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-binder-kafka</artifactId>
