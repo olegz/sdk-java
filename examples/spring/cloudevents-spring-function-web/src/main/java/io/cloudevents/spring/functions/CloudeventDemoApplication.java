@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package io.spring.cloudevent;
+package io.cloudevents.spring.functions;
 
+import java.net.URI;
 import java.util.function.Function;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.function.cloudevent.CloudEventAttributesProvider;
 import org.springframework.context.annotation.Bean;
 
+import io.cloudevents.spring.core.CloudEventAttributeUtils;
+import io.cloudevents.spring.core.CloudEventAttributesProvider;
+
 /**
- * Sample application that demonstrates how user functions can be triggered by cloud event.
- * Events can come from anywhere (e.g., HTTP, Messaging, RSocket etc).
- * Given that this particular sample comes already with spring-cloud-function-web support each
- * function is a valid REST endpoint where function name signifies URL path (e.g., http://localhost:8080/asPOJOMessage).
+ * Sample application that demonstrates how user functions can be triggered
+ * by cloud event.
+ * Given that this particular sample based on spring-cloud-function-web
+ * support the function itself is a valid REST endpoint where function name
+ * signifies URL path (e.g., http://localhost:8080/pojoToPojo).
  *
- * Simply start the application and post cloud event to individual function - (see individual 'curl' command at each function).
+ * Simply start the application and post cloud event to individual
+ * function - (see README for instructions)
  *
  * You can also run CloudeventDemoApplicationTests.
  *
@@ -43,18 +48,18 @@ public class CloudeventDemoApplication {
 	    SpringApplication.run(CloudeventDemoApplication.class, args);
 	}
 
-	@Bean
-	public Function<SpringReleaseEvent, SpringReleaseEvent> consumeAndProduceCloudEventAsPojoToPojo() {
-		return event -> {
-			event.setVersion("2.0");
-			return event;
-		};
+	/*
+	 * This strategy will be called internally by Spring to set Cloud Event output attributes
+	 */
+//	@Bean
+	public CloudEventAttributesProvider cloudEventAttributesProvider() {
+		return attributes -> CloudEventAttributeUtils.toMutable(attributes)
+		            .setSource(URI.create("https://interface21.com/"))
+		            .setType("com.interface21");
 	}
 
 	@Bean
-    public CloudEventAttributesProvider cloudEventAttributesProvider() {
-        return attributes -> {
-            attributes.setSource("https://interface21.com/").setType("com.interface21");
-        };
-    }
+	public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
+		return event -> event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
+	}
 }

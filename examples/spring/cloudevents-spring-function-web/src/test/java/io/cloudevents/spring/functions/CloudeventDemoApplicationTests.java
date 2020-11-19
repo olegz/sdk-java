@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.spring.cloudevent;
+package io.cloudevents.spring.functions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -92,8 +92,6 @@ public class CloudeventDemoApplicationTests {
 
 	@Test
     public void testAsStrtuctured() throws Exception {
-
-
         String payload = "{\n" +
                 "    \"specversion\" : \"1.0\",\n" +
                 "    \"type\" : \"org.springframework\",\n" +
@@ -109,7 +107,7 @@ public class CloudeventDemoApplicationTests {
 
         try (ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.valueOf("application/cloudevents+json;charset=utf-8"));
+            headers.setContentType(MediaType.valueOf(CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json"));
 
             RequestEntity<String> re = new RequestEntity<>(payload, headers, HttpMethod.POST,
                     URI.create("http://localhost:" + System.getProperty("server.port") + "/pojoToPojo"));

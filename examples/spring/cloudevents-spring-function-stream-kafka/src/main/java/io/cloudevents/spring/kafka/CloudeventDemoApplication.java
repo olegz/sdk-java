@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.spring.cloudevent;
+package io.cloudevents.spring.kafka;
 
 import java.net.URI;
 import java.util.function.Function;
@@ -44,22 +44,25 @@ import io.cloudevents.spring.core.CloudEventAttributesProvider;
 @SpringBootApplication
 public class CloudeventDemoApplication {
 
-	public static void main(String[] args) throws Exception {
-	    SpringApplication.run(CloudeventDemoApplication.class, args);
-	}
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(CloudeventDemoApplication.class, args);
+    }
 
-	/*
-	 * This strategy will be called internally by Spring to set Cloud Event output attributes
-	 */
-//	@Bean
-	public CloudEventAttributesProvider cloudEventAttributesProvider() {
-		return attributes -> CloudEventAttributeUtils.toMutable(attributes)
-		            .setSource(URI.create("https://interface21.com/"))
-		            .setType("com.interface21");
-	}
+    /*
+     * This strategy will be called internally by Spring to set Cloud Event output attributes
+     */
+//  @Bean
+    public CloudEventAttributesProvider cloudEventAttributesProvider() {
+        return attributes -> CloudEventAttributeUtils.toMutable(attributes)
+                    .setSource(URI.create("https://interface21.com/"))
+                    .setType("com.interface21");
+    }
 
-	@Bean
-	public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
-		return event -> event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
-	}
+    @Bean
+    public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
+        return event -> {
+            System.out.println("RECEIVED Spring Release Event: " + event);
+            return event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
+        };
+    }
 }

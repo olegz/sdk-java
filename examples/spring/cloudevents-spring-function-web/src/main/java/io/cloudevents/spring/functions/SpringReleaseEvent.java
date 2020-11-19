@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.spring.cloudevent;
+package io.cloudevents.spring.functions;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,13 +30,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  */
 public class SpringReleaseEvent {
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Europe/Paris")
 	private Date releaseDate;
 
 	private String releaseName;
 
 	private String version;
-
 	public Date getReleaseDate() {
 		return releaseDate;
 	}
@@ -45,29 +44,32 @@ public class SpringReleaseEvent {
 		this.releaseDate = releaseDate;
 	}
 
-	public void setReleaseDateAsString(String releaseDate) {
+	public SpringReleaseEvent setReleaseDateAsString(String releaseDate) {
 		try {
 			this.releaseDate = new SimpleDateFormat("dd-MM-yyyy").parse(releaseDate);
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
+		return this;
 	}
 
 	public String getReleaseName() {
 		return releaseName;
 	}
 
-	public void setReleaseName(String releaseName) {
+	public SpringReleaseEvent setReleaseName(String releaseName) {
 		this.releaseName = releaseName;
+		return this;
 	}
 
 	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(String version) {
+	public SpringReleaseEvent setVersion(String version) {
 		this.version = version;
+		return this;
 	}
 
 	@Override
