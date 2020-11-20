@@ -39,7 +39,8 @@ import org.springframework.util.StringUtils;
 /**
  * Miscellaneous utility methods to assist with representing Cloud Event as Spring
  * {@link Message} <br>
- * Primarily intended for the internal use within Spring-based frameworks and integrations;
+ * Primarily intended for the internal use within Spring-based frameworks and
+ * integrations;
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
@@ -72,7 +73,7 @@ public final class CloudEventMessageUtils {
 						.parseMimeType(contentType.getType() + "/" + suffix);
 				Message<?> cloudEventMessage = MessageBuilder.fromMessage(inputMessage)
 						.setHeader(MessageHeaders.CONTENT_TYPE, cloudEventDeserializationContentType)
-						.setHeader(CloudEventAttributeUtils.DATACONTENTTYPE, dataContentType).build();
+						.setHeader(MutableCloudEventAttributes.DATACONTENTTYPE, dataContentType).build();
 				Map<String, Object> structuredCloudEvent = (Map<String, Object>) messageConverter
 						.fromMessage(cloudEventMessage, Map.class);
 				Message<?> binaryCeMessage = buildBinaryMessageFromStructuredMap(structuredCloudEvent,
@@ -88,17 +89,16 @@ public final class CloudEventMessageUtils {
 	}
 
 	/**
-	 * Utility method to assist with creating output attributes.
-	 * <br>
-	 * Typically user by {@link Consumer}. Unlike {@link Function}
-	 * where framework(s) internally do that once the function is executed and output is produced,
-	 * Consumer does not produce any output, so from the framework perspective it is the end of the line.
-	 * However, such Consumer may want to send new Cloud Event (e.g., via HTTP or some messaging template)
-	 * and thus still requires generation of output attributes.
-	 *
+	 * Utility method to assist with creating output attributes. <br>
+	 * Typically user by {@link Consumer}. Unlike {@link Function} where framework(s)
+	 * internally do that once the function is executed and output is produced, Consumer
+	 * does not produce any output, so from the framework perspective it is the end of the
+	 * line. However, such Consumer may want to send new Cloud Event (e.g., via HTTP or
+	 * some messaging template) and thus still requires generation of output attributes.
 	 * @param message instance of input {@link Message}.
 	 * @param provider instance of CloudEventAttributesProvider.
-	 * @return an instance of {@link CloudEventAttributes} as {@link MutableCloudEventAttributes}
+	 * @return an instance of {@link CloudEventAttributes} as
+	 * {@link MutableCloudEventAttributes}
 	 */
 	public static MutableCloudEventAttributes getOutputAttributes(Message<?> message,
 			CloudEventAttributesProvider provider) {
@@ -118,7 +118,7 @@ public final class CloudEventMessageUtils {
 		return MessageBuilder.withPayload(payload)
 				.copyHeaders(attributes.toMap(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
 				.copyHeaders(originalHeaders)
-				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID,
+				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.ID,
 						attributes.getId())
 				.build();
 	}

@@ -27,8 +27,8 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
 /**
- * Miscellaneous utility methods to assist with Cloud Event attributes.
- * Primarily intended for the internal use within Spring-based frameworks or integrations.
+ * Miscellaneous utility methods to assist with Cloud Event attributes. Primarily intended
+ * for the internal use within Spring-based frameworks or integrations.
  *
  * @author Oleg Zhurakousky
  * @author Dave Syer
@@ -70,51 +70,6 @@ public final class CloudEventAttributeUtils {
 	public static String DATA = "data";
 
 	/**
-	 * Value for 'id' attribute.
-	 */
-	public static String ID = "id";
-
-	/**
-	 * Value for 'source' attribute.
-	 */
-	public static String SOURCE = "source";
-
-	/**
-	 * Value for 'specversion' attribute.
-	 */
-	public static String SPECVERSION = "specversion";
-
-	/**
-	 * Value for 'type' attribute.
-	 */
-	public static String TYPE = "type";
-
-	/**
-	 * Value for 'datacontenttype' attribute.
-	 */
-	public static String DATACONTENTTYPE = "datacontenttype";
-
-	/**
-	 * Value for 'dataschema' attribute.
-	 */
-	public static String DATASCHEMA = "dataschema";
-
-	/**
-	 * V03 name for 'dataschema' attribute.
-	 */
-	public static final String SCHEMAURL = "schemaurl";
-
-	/**
-	 * Value for 'subject' attribute.
-	 */
-	public static String SUBJECT = "subject";
-
-	/**
-	 * Value for 'time' attribute.
-	 */
-	public static String TIME = "time";
-
-	/**
 	 * Make a mutable copy of the input (or just return the input if it is already
 	 * mutable).
 	 * @param attributes input CloudEventAttributes
@@ -133,7 +88,6 @@ public final class CloudEventAttributeUtils {
 
 	/**
 	 * Will wrap the provided map of headers as {@link MutableCloudEventAttributes}.
-	 *
 	 * @param headers map representing headers
 	 * @return instance of {@link MutableCloudEventAttributes}
 	 */
@@ -144,13 +98,13 @@ public final class CloudEventAttributeUtils {
 
 	private static String determinePrefixToUse(Map<String, Object> messageHeaders) {
 		Set<String> keys = messageHeaders.keySet();
-		if (keys.contains(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+		if (keys.contains(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.ID)) {
 			return CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX;
 		}
-		else if (keys.contains(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+		else if (keys.contains(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + MutableCloudEventAttributes.ID)) {
 			return CloudEventAttributeUtils.HTTP_ATTR_PREFIX;
 		}
-		else if (keys.contains(CloudEventAttributeUtils.AMQP_ATTR_PREFIX + CloudEventAttributeUtils.ID)) {
+		else if (keys.contains(CloudEventAttributeUtils.AMQP_ATTR_PREFIX + MutableCloudEventAttributes.ID)) {
 			return CloudEventAttributeUtils.AMQP_ATTR_PREFIX;
 		}
 		else if (keys.contains("user-agent")) {
@@ -168,7 +122,7 @@ public final class CloudEventAttributeUtils {
 				result.put(name, headers.get(prefix + name));
 			}
 		}
-		result.put(CloudEventAttributeUtils.SPECVERSION, specVersion);
+		result.put(MutableCloudEventAttributes.SPECVERSION, specVersion);
 		if (headers.containsKey(prefix + CloudEventAttributeUtils.DATA)) {
 			result.put(CloudEventAttributeUtils.DATA, headers.get(prefix + CloudEventAttributeUtils.DATA));
 		}
@@ -176,7 +130,7 @@ public final class CloudEventAttributeUtils {
 	}
 
 	private static SpecVersion extractSpecVersion(Map<String, Object> headers, String prefix) {
-		String key = prefix + CloudEventAttributeUtils.SPECVERSION;
+		String key = prefix + MutableCloudEventAttributes.SPECVERSION;
 		if (headers.containsKey(key)) {
 			Object object = headers.get(key);
 			if (object instanceof SpecVersion) {

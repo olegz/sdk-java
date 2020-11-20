@@ -45,10 +45,55 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 
 	boolean isV03 = false;
 
+	/**
+	 * Value for 'id' attribute.
+	 */
+	public static String ID = "id";
+
+	/**
+	 * Value for 'source' attribute.
+	 */
+	public static String SOURCE = "source";
+
+	/**
+	 * Value for 'specversion' attribute.
+	 */
+	public static String SPECVERSION = "specversion";
+
+	/**
+	 * Value for 'type' attribute.
+	 */
+	public static String TYPE = "type";
+
+	/**
+	 * Value for 'datacontenttype' attribute.
+	 */
+	public static String DATACONTENTTYPE = "datacontenttype";
+
+	/**
+	 * Value for 'dataschema' attribute.
+	 */
+	public static String DATASCHEMA = "dataschema";
+
+	/**
+	 * V03 name for 'dataschema' attribute.
+	 */
+	public static final String SCHEMAURL = "schemaurl";
+
+	/**
+	 * Value for 'subject' attribute.
+	 */
+	public static String SUBJECT = "subject";
+
+	/**
+	 * Value for 'time' attribute.
+	 */
+	public static String TIME = "time";
+
 	MutableCloudEventAttributes(Map<String, Object> headers) {
 		map.putAll(headers);
-		safe(headers, CloudEventAttributeUtils.SOURCE);
-		safe(headers, CloudEventAttributeUtils.DATASCHEMA);
+		safe(headers, MutableCloudEventAttributes.SOURCE);
+		safe(headers, MutableCloudEventAttributes.DATASCHEMA);
 		this.isV03 = this.getSpecVersion().equals(SpecVersion.V03);
 	}
 
@@ -61,84 +106,84 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 
 	@Override
 	public SpecVersion getSpecVersion() {
-		SpecVersion specVersion = (SpecVersion) this.getAttribute(CloudEventAttributeUtils.SPECVERSION);
+		SpecVersion specVersion = (SpecVersion) this.getAttribute(MutableCloudEventAttributes.SPECVERSION);
 		return specVersion == null ? SpecVersion.V1 : specVersion;
 	}
 
 	public MutableCloudEventAttributes setId(String id) {
-		this.setAttribute(CloudEventAttributeUtils.ID, id);
+		this.setAttribute(MutableCloudEventAttributes.ID, id);
 		return this;
 	}
 
 	@Override
 	public String getId() {
-		Object id = this.getAttribute(CloudEventAttributeUtils.ID);
+		Object id = this.getAttribute(MutableCloudEventAttributes.ID);
 		return id == null ? null : id.toString();
 	}
 
 	public MutableCloudEventAttributes setType(String type) {
-		this.setAttribute(CloudEventAttributeUtils.TYPE, type);
+		this.setAttribute(MutableCloudEventAttributes.TYPE, type);
 		return this;
 	}
 
 	@Override
 	public String getType() {
-		return (String) this.getAttribute(CloudEventAttributeUtils.TYPE);
+		return (String) this.getAttribute(MutableCloudEventAttributes.TYPE);
 	}
 
 	public MutableCloudEventAttributes setSource(URI source) {
-		this.setAttribute(CloudEventAttributeUtils.SOURCE, source.toString());
+		this.setAttribute(MutableCloudEventAttributes.SOURCE, source.toString());
 		return this;
 	}
 
 	@Override
 	public URI getSource() {
-		Object value = this.getAttribute(CloudEventAttributeUtils.SOURCE);
+		Object value = this.getAttribute(MutableCloudEventAttributes.SOURCE);
 		return value == null ? null : URI.create((String) value);
 	}
 
 	public MutableCloudEventAttributes setDataContentType(String datacontenttype) {
-		this.setAttribute(CloudEventAttributeUtils.DATACONTENTTYPE, datacontenttype);
+		this.setAttribute(MutableCloudEventAttributes.DATACONTENTTYPE, datacontenttype);
 		return this;
 	}
 
 	@Override
 	public String getDataContentType() {
-		return (String) this.getAttribute(CloudEventAttributeUtils.DATACONTENTTYPE);
+		return (String) this.getAttribute(MutableCloudEventAttributes.DATACONTENTTYPE);
 	}
 
 	public MutableCloudEventAttributes setDataSchema(URI dataschema) {
-		this.setAttribute(CloudEventAttributeUtils.DATASCHEMA, dataschema.toString());
+		this.setAttribute(MutableCloudEventAttributes.DATASCHEMA, dataschema.toString());
 		return this;
 	}
 
 	@Override
 	public URI getDataSchema() {
-		Object value = this.getAttribute(CloudEventAttributeUtils.DATASCHEMA);
+		Object value = this.getAttribute(MutableCloudEventAttributes.DATASCHEMA);
 		if (value == null && this.getSpecVersion() == SpecVersion.V03) {
-			value = this.getAttribute(CloudEventAttributeUtils.SCHEMAURL);
+			value = this.getAttribute(MutableCloudEventAttributes.SCHEMAURL);
 		}
 		return value == null ? null : URI.create((String) value);
 	}
 
 	public MutableCloudEventAttributes setSubject(String subject) {
-		this.setAttribute(CloudEventAttributeUtils.SUBJECT, subject);
+		this.setAttribute(MutableCloudEventAttributes.SUBJECT, subject);
 		return this;
 	}
 
 	@Override
 	public String getSubject() {
-		return (String) this.getAttribute(CloudEventAttributeUtils.SUBJECT);
+		return (String) this.getAttribute(MutableCloudEventAttributes.SUBJECT);
 	}
 
 	public MutableCloudEventAttributes setTime(String time) {
-		this.setAttribute(CloudEventAttributeUtils.TIME, time);
+		this.setAttribute(MutableCloudEventAttributes.TIME, time);
 		return this;
 	}
 
 	@Override
 	public OffsetDateTime getTime() {
-		String time = (String) this.getAttribute(CloudEventAttributeUtils.TIME);
+		String time = (String) this.getAttribute(MutableCloudEventAttributes.TIME);
 		return OffsetDateTime.parse(time);
 	}
 
@@ -148,17 +193,17 @@ public class MutableCloudEventAttributes implements CloudEventAttributes, Serial
 	 */
 	@Override
 	public Object getAttribute(String attributeName) {
-		if (isV03 && CloudEventAttributeUtils.SCHEMAURL.equals(attributeName)
-				&& map.containsKey(CloudEventAttributeUtils.DATASCHEMA)) {
-			return map.get(CloudEventAttributeUtils.DATASCHEMA);
+		if (isV03 && MutableCloudEventAttributes.SCHEMAURL.equals(attributeName)
+				&& map.containsKey(MutableCloudEventAttributes.DATASCHEMA)) {
+			return map.get(MutableCloudEventAttributes.DATASCHEMA);
 		}
 		return map.get(attributeName);
 	}
 
 	/**
 	 * Determines if this instance of {@link CloudEventAttributes} represents valid Cloud
-	 * Event. This implies that it contains all 4 required attributes (id, source, type and
-	 * specversion)
+	 * Event. This implies that it contains all 4 required attributes (id, source, type
+	 * and specversion)
 	 * @return true if this instance represents a valid Cloud Event
 	 */
 	public boolean isValidCloudEvent() {
