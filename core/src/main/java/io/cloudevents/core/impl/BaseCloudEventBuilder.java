@@ -18,6 +18,7 @@
 package io.cloudevents.core.impl;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,26 +38,16 @@ public abstract class BaseCloudEventBuilder<SELF extends BaseCloudEventBuilder<S
     private final SELF self;
 
     protected CloudEventData data;
-    protected Map<String, Object> extensions;
+    protected Map<String, Object> extensions = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public BaseCloudEventBuilder() {
         this.self = (SELF) this;
-        this.extensions = new HashMap<>();
     }
 
     public BaseCloudEventBuilder(CloudEventContext context) {
         this();
-        for (String name: context.getAttributeNames()) {
-            if (!name.equals("specversion")) {
-                Object value = context.getAttribute(name);
-                if (value instanceof String) {
-                    withAttribute(name, (String) value);
-                } else {
-                    withAttribute(name, value.toString());
-                }
-            }
-        }
+        setAttributes(context);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,7 +62,7 @@ public abstract class BaseCloudEventBuilder<SELF extends BaseCloudEventBuilder<S
         }
     }
 
-    protected abstract void setAttributes(CloudEvent event);
+    protected abstract void setAttributes(CloudEventContext event);
 
     //TODO builder should accept data as Object and use data codecs (that we need to implement)
     // to encode data
