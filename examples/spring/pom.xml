@@ -19,7 +19,6 @@
     <modules>
         <module>cloudevents-spring-function-web</module>
         <module>cloudevents-spring-function-stream-kafka</module>
-        <module>cloudevents-spring-webmvc</module>
     </modules>
 
 </project>

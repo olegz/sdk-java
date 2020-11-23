@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-Present The CloudEvents Authors
+ * Copyright 2019-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.cloudevents.spring.http;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.MutableCloudEventAttributes;
+import io.cloudevents.CloudEvent;
+import io.cloudevents.spring.core.CloudEventHeaderUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,9 +114,8 @@ class RestControllerTests {
 
 		@PostMapping("/")
 		public ResponseEntity<Foo> echo(@RequestBody Foo foo, @RequestHeader HttpHeaders headers) {
-			MutableCloudEventAttributes attributes = CloudEventHttpUtils.fromHttp(headers)
-					.setId(UUID.randomUUID().toString()).setSource(URI.create("https://spring.io/foos"))
-					.setType("io.spring.event.Foo");
+			CloudEvent attributes = CloudEventHttpUtils.fromHttp(headers).withId(UUID.randomUUID().toString())
+					.withSource(URI.create("https://spring.io/foos")).withType("io.spring.event.Foo").build();
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
 			return ResponseEntity.ok().headers(outgoing).body(foo);
 		}
@@ -125,11 +123,10 @@ class RestControllerTests {
 		@PostMapping(path = "/", consumes = "application/cloudevents+json")
 		public ResponseEntity<Object> structured(@RequestBody Map<String, Object> body,
 				@RequestHeader HttpHeaders headers) {
-			MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(body)
-					.setId(UUID.randomUUID().toString()).setSource(URI.create("https://spring.io/foos"))
-					.setType("io.spring.event.Foo");
+			CloudEvent attributes = CloudEventHeaderUtils.fromMap(body).withId(UUID.randomUUID().toString())
+					.withSource(URI.create("https://spring.io/foos")).withType("io.spring.event.Foo").build();
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
-			return ResponseEntity.ok().headers(outgoing).body(body.get(CloudEventAttributeUtils.DATA));
+			return ResponseEntity.ok().headers(outgoing).body(body.get(CloudEventHeaderUtils.DATA));
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-Present The CloudEvents Authors
+ * Copyright 2020-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,21 @@ package io.cloudevents.spring.kafka;
 import java.net.URI;
 import java.util.function.Function;
 
+import io.cloudevents.core.builder.CloudEventBuilder;
+import io.cloudevents.spring.core.CloudEventHeadersProvider;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributesProvider;
-
 /**
- * Sample application that demonstrates how user functions can be triggered
- * by cloud event.
- * Given that this particular sample based on spring-cloud-function-web
- * support the function itself is a valid REST endpoint where function name
- * signifies URL path (e.g., http://localhost:8080/pojoToPojo).
+ * Sample application that demonstrates how user functions can be triggered by cloud
+ * event. Given that this particular sample based on spring-cloud-function-web support the
+ * function itself is a valid REST endpoint where function name signifies URL path (e.g.,
+ * http://localhost:8080/pojoToPojo).
  *
- * Simply start the application and post cloud event to individual
- * function - (see README for instructions)
+ * Simply start the application and post cloud event to individual function - (see README
+ * for instructions)
  *
  * You can also run CloudeventDemoApplicationTests.
  *
@@ -44,25 +43,26 @@ import io.cloudevents.spring.core.CloudEventAttributesProvider;
 @SpringBootApplication
 public class CloudeventDemoApplication {
 
-    public static void main(String[] args) throws Exception {
-        SpringApplication.run(CloudeventDemoApplication.class, args);
-    }
+	public static void main(String[] args) throws Exception {
+		SpringApplication.run(CloudeventDemoApplication.class, args);
+	}
 
-    /*
-     * This strategy will be called internally by Spring to set Cloud Event output attributes
-     */
-//  @Bean
-    public CloudEventAttributesProvider cloudEventAttributesProvider() {
-        return attributes -> CloudEventAttributeUtils.toMutable(attributes)
-                    .setSource(URI.create("https://interface21.com/"))
-                    .setType("com.interface21");
-    }
+	/*
+	 * This strategy will be called internally by Spring to set Cloud Event output
+	 * attributes
+	 */
+	// @Bean
+	public CloudEventHeadersProvider cloudEventHeadersProvider() {
+		return attributes -> CloudEventBuilder.fromContext(attributes)
+				.withSource(URI.create("https://interface21.com/")).withType("com.interface21").build();
+	}
 
-    @Bean
-    public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
-        return event -> {
-            System.out.println("RECEIVED Spring Release Event: " + event);
-            return event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
-        };
-    }
+	@Bean
+	public Function<SpringReleaseEvent, SpringReleaseEvent> pojoToPojo() {
+		return event -> {
+			System.out.println("RECEIVED Spring Release Event: " + event);
+			return event.setReleaseDateAsString("01-10-2006").setVersion("2.0");
+		};
+	}
+
 }
