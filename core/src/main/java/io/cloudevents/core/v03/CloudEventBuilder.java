@@ -53,7 +53,7 @@ public final class CloudEventBuilder extends BaseCloudEventBuilder<CloudEventBui
     public CloudEventBuilder(io.cloudevents.CloudEventContext context) {
         super();
         for (String name: context.getAttributeNames()) {
-            if (!name.equals("specversion")) {
+            if (!name.equals(CloudEventV03.SPECVERSION)) {
                 Object value = context.getAttribute(name);
                 if (value instanceof String) {
                     withAttribute(name, (String) value);
