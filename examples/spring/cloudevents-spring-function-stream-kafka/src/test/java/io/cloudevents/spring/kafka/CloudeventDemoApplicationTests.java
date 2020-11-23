@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2020 the original author or authors.
+ * Copyright 2020-Present The CloudEvents Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package io.cloudevents.spring.kafka;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import io.cloudevents.spring.core.CloudEventHeaderUtils;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -33,67 +33,61 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.concurrent.ListenableFuture;
 
-import io.cloudevents.spring.core.CloudEventHeaderUtils;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *
  * @author Oleg Zhurakousky
  *
  */
 public class CloudeventDemoApplicationTests {
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    @Test
-    public void testAsBinary() throws Exception {
-        try( ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
-            KafkaTemplate kafka = context.getBean(KafkaTemplate.class);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testAsBinary() throws Exception {
+		try (ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
+			KafkaTemplate kafka = context.getBean(KafkaTemplate.class);
 
-            String binaryEvent = "{\"releaseDate\":\"24-03-2004\", \"releaseName\":\"Spring Framework\", \"version\":\"1.0\"}";
+			String binaryEvent = "{\"releaseDate\":\"24-03-2004\", \"releaseName\":\"Spring Framework\", \"version\":\"1.0\"}";
 
-            Message<byte[]> message = MessageBuilder.withPayload(binaryEvent.getBytes(StandardCharsets.UTF_8))
-                .setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.ID, UUID.randomUUID().toString())
-                .setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SOURCE, "https://spring.io/")
-                .setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SPECVERSION, "1.0")
-                .setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.TYPE, "org.springframework")
-                .setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0")
-                .build();
+			Message<byte[]> message = MessageBuilder.withPayload(binaryEvent.getBytes(StandardCharsets.UTF_8))
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.ID,
+							UUID.randomUUID().toString())
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SOURCE,
+							"https://spring.io/")
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SPECVERSION, "1.0")
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.TYPE,
+							"org.springframework")
+					.setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0").build();
 
+			ListenableFuture<SendResult<String, String>> future = kafka.send(message);
 
-            ListenableFuture<SendResult<String, String>> future = kafka.send(message);
+			assertThat(future.get(1000, TimeUnit.MILLISECONDS).getRecordMetadata()).isNotNull();
+		}
+	}
 
-            assertThat(future.get(1000, TimeUnit.MILLISECONDS).getRecordMetadata()).isNotNull();
-        }
-    }
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testAsStructured() throws Exception {
+		try (ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
+			KafkaTemplate kafka = context.getBean(KafkaTemplate.class);
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    @Test
-    public void testAsStructured() throws Exception {
-        try( ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
-            KafkaTemplate kafka = context.getBean(KafkaTemplate.class);
+			String structuredEvent = "{\n" + "    \"specversion\" : \"1.0\",\n"
+					+ "    \"type\" : \"org.springframework\",\n" + "    \"source\" : \"https://spring.io/\",\n"
+					+ "    \"id\" : \"A234-1234-1234\",\n" + "    \"datacontenttype\" : \"application/json\",\n"
+					+ "    \"data\" : {\n" + "        \"version\" : \"1.0\",\n"
+					+ "        \"releaseName\" : \"Spring Framework\",\n" + "        \"releaseDate\" : \"24-03-2004\"\n"
+					+ "    }\n" + "}";
 
-            String structuredEvent = "{\n" +
-                    "    \"specversion\" : \"1.0\",\n" +
-                    "    \"type\" : \"org.springframework\",\n" +
-                    "    \"source\" : \"https://spring.io/\",\n" +
-                    "    \"id\" : \"A234-1234-1234\",\n" +
-                    "    \"datacontenttype\" : \"application/json\",\n" +
-                    "    \"data\" : {\n" +
-                    "        \"version\" : \"1.0\",\n" +
-                    "        \"releaseName\" : \"Spring Framework\",\n" +
-                    "        \"releaseDate\" : \"24-03-2004\"\n" +
-                    "    }\n" +
-                    "}";
+			System.out.println(structuredEvent);
+			Message<byte[]> message = MessageBuilder.withPayload(structuredEvent.getBytes(StandardCharsets.UTF_8))
+					.setHeader(MessageHeaders.CONTENT_TYPE,
+							CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
+					.setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0").build();
 
-            Message<byte[]> message = MessageBuilder.withPayload(structuredEvent.getBytes(StandardCharsets.UTF_8))
-                .setHeader(MessageHeaders.CONTENT_TYPE, CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
-                .setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0")
-                .build();
+			ListenableFuture<SendResult<String, String>> future = kafka.send(message);
 
-
-            ListenableFuture<SendResult<String, String>> future = kafka.send(message);
-
-            assertThat(future.get(1000, TimeUnit.MILLISECONDS).getRecordMetadata()).isNotNull();
-        }
-    }
+			assertThat(future.get(1000, TimeUnit.MILLISECONDS).getRecordMetadata()).isNotNull();
+		}
+	}
 
 }
