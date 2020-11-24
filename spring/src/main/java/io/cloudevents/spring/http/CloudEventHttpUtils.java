@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import io.cloudevents.CloudEventAttributes;
+import io.cloudevents.CloudEventContext;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.spring.core.CloudEventHeaderUtils;
 
@@ -35,13 +35,20 @@ import org.springframework.http.HttpHeaders;
  */
 public class CloudEventHttpUtils {
 
-	public static HttpHeaders toHttp(CloudEventAttributes attributes) {
+	public static HttpHeaders toHttp(CloudEventContext attributes) {
 		HttpHeaders headers = new HttpHeaders();
 		for (String key : attributes.getAttributeNames()) {
 			String target = CloudEventHeaderUtils.HTTP_ATTR_PREFIX + key;
 			if (attributes.getAttribute(key) != null) {
 				// TODO: need to convert timestamps?
 				headers.set(target, attributes.getAttribute(key).toString());
+			}
+		}
+		for (String key : attributes.getExtensionNames()) {
+			String target = CloudEventHeaderUtils.HTTP_ATTR_PREFIX + key;
+			if (attributes.getExtension(key) != null) {
+				// TODO: need to convert timestamps?
+				headers.set(target, attributes.getExtension(key).toString());
 			}
 		}
 		return headers;
