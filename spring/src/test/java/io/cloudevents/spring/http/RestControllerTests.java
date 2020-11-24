@@ -16,11 +16,14 @@
 package io.cloudevents.spring.http;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import io.cloudevents.CloudEvent;
+import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.spring.core.CloudEventHeaderUtils;
+import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +32,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,6 +114,33 @@ class RestControllerTests {
 
 	}
 
+	@Test
+	void requestResponseEvents() {
+
+		ResponseEntity<String> response = rest
+				.exchange(RequestEntity.post(URI.create("http://localhost:" + port + "/event")) //
+						.header("ce-id", "12345") //
+						.header("ce-specversion", "1.0") //
+						.header("ce-type", "io.spring.event") //
+						.header("ce-source", "https://spring.io/events") //
+						.contentType(MediaType.APPLICATION_JSON) //
+						.body("{\"value\":\"Dave\"}"), String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("{\"value\":\"Dave\"}");
+
+		HttpHeaders headers = response.getHeaders();
+
+		assertThat(headers).containsKey("ce-id");
+		assertThat(headers).containsKey("ce-source");
+		assertThat(headers).containsKey("ce-type");
+
+		// assertThat(headers.getFirst("ce-id")).isNotEqualTo("12345");
+		assertThat(headers.getFirst("ce-type")).isEqualTo("io.spring.event.Foo");
+		assertThat(headers.getFirst("ce-source")).isEqualTo("https://spring.io/foos");
+
+	}
+
 	@SpringBootApplication
 	@RestController
 	static class TestApplication {
@@ -127,6 +160,24 @@ class RestControllerTests {
 					.withSource(URI.create("https://spring.io/foos")).withType("io.spring.event.Foo").build();
 			HttpHeaders outgoing = CloudEventHttpUtils.toHttp(attributes);
 			return ResponseEntity.ok().headers(outgoing).body(body.get(CloudEventHeaderUtils.DATA));
+		}
+
+		@PostMapping("/event")
+		public CloudEvent ce(@RequestBody CloudEvent event) {
+			CloudEvent attributes = CloudEventBuilder.from(event).withId(UUID.randomUUID().toString())
+					.withSource(URI.create("https://spring.io/foos")).withType("io.spring.event.Foo")
+					.withData(event.getData().toBytes()).build();
+			return attributes;
+		}
+
+		@Configuration
+		public static class CloudEventHandlerConfiguration implements WebMvcConfigurer {
+
+			@Override
+			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+				converters.add(0, new CloudEventHttpMessageConverter());
+			}
+
 		}
 
 	}

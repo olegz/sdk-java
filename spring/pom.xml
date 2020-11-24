@@ -62,6 +62,11 @@
             <artifactId>cloudevents-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Test deps -->
         <dependency>
