@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.cloudevents.spring.http;
+package io.cloudevents.spring.mvc;
 
 import java.net.URI;
 import java.util.List;
@@ -23,6 +23,7 @@ import java.util.UUID;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.spring.core.CloudEventHeaderUtils;
+import io.cloudevents.spring.http.CloudEventHttpUtils;
 import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-class RestControllerTests {
+class MvcRestControllerTests {
 
 	@Autowired
 	private TestRestTemplate rest;
