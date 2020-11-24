@@ -20,8 +20,7 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
 
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.MutableCloudEventAttributes;
+import io.cloudevents.spring.core.CloudEventHeaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -79,44 +78,38 @@ public class CloudeventDemoApplicationTests {
 
 			SpringReleaseEvent springEvent = context.getBean(JsonMapper.class).fromJson(response.getBody(),
 					SpringReleaseEvent.class);
-            assertThat(springEvent.getVersion()).isEqualTo("2.0");
-            assertThat(springEvent.getReleaseDate()).isEqualTo(new SimpleDateFormat("dd-MM-yyyy").parse("01-10-2006"));
+			assertThat(springEvent.getVersion()).isEqualTo("2.0");
+			assertThat(springEvent.getReleaseDate()).isEqualTo(new SimpleDateFormat("dd-MM-yyyy").parse("01-10-2006"));
 
-            /*
-             * Uncomment this and comment the next two assertion if
-             * CloudEventAttributesProvider is enabled in CloudeventDemoApplication
-             */
-//            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.SOURCE))
-//                    .isEqualTo("https://interface21.com/");
-//            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.TYPE))
-//                    .isEqualTo("com.interface21");
+			/*
+			 * Uncomment this and comment the next two assertion if
+			 * CloudEventAttributesProvider is enabled in CloudeventDemoApplication
+			 */
+			// assertThat(response.getHeaders().getFirst("ce-" +
+			// MutableCloudEventAttributes.SOURCE))
+			// .isEqualTo("https://interface21.com/");
+			// assertThat(response.getHeaders().getFirst("ce-" +
+			// MutableCloudEventAttributes.TYPE))
+			// .isEqualTo("com.interface21");
 
-            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.SOURCE))
-                    .isEqualTo("http://spring.io/application-application");
-            assertThat(response.getHeaders()
-                    .getFirst("ce-" + MutableCloudEventAttributes.TYPE)) .isEqualTo(SpringReleaseEvent.class.getName());
+			assertThat(response.getHeaders().getFirst("ce-" + CloudEventHeaderUtils.SOURCE))
+					.isEqualTo("http://spring.io/application-application");
+			assertThat(response.getHeaders().getFirst("ce-" + CloudEventHeaderUtils.TYPE))
+					.isEqualTo(SpringReleaseEvent.class.getName());
 		}
 	}
 
-
 	@Test
 	public void testAsStrtuctured() throws Exception {
-		String payload = "{\n" +
-		        "    \"specversion\" : \"1.0\",\n" +
-		        "    \"type\" : \"org.springframework\",\n" +
-		        "    \"source\" : \"https://spring.io/\",\n" +
-		        "    \"id\" : \"A234-1234-1234\",\n" +
-		        "    \"datacontenttype\" : \"application/json\",\n" +
-		        "    \"data\" : {\n" +
-		        "        \"version\" : \"1.0\",\n" +
-		        "        \"releaseName\" : \"Spring Framework\",\n" +
-		        "        \"releaseDate\" : \"24-03-2004\"\n" +
-		        "    }\n" +
-		        "}";
+		String payload = "{\n" + "    \"specversion\" : \"1.0\",\n" + "    \"type\" : \"org.springframework\",\n"
+				+ "    \"source\" : \"https://spring.io/\",\n" + "    \"id\" : \"A234-1234-1234\",\n"
+				+ "    \"datacontenttype\" : \"application/json\",\n" + "    \"data\" : {\n"
+				+ "        \"version\" : \"1.0\",\n" + "        \"releaseName\" : \"Spring Framework\",\n"
+				+ "        \"releaseDate\" : \"24-03-2004\"\n" + "    }\n" + "}";
 
 		try (ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.valueOf(CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json"));
+			headers.setContentType(MediaType.valueOf(CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json"));
 
 			RequestEntity<String> re = new RequestEntity<>(payload, headers, HttpMethod.POST,
 					URI.create("http://localhost:" + System.getProperty("server.port") + "/pojoToPojo"));
@@ -124,35 +117,34 @@ public class CloudeventDemoApplicationTests {
 
 			SpringReleaseEvent springEvent = context.getBean(JsonMapper.class).fromJson(response.getBody(),
 					SpringReleaseEvent.class);
-            assertThat(springEvent.getVersion()).isEqualTo("2.0");
-            assertThat(springEvent.getReleaseDate()).isEqualTo(new SimpleDateFormat("dd-MM-yyyy").parse("01-10-2006"));
+			assertThat(springEvent.getVersion()).isEqualTo("2.0");
+			assertThat(springEvent.getReleaseDate()).isEqualTo(new SimpleDateFormat("dd-MM-yyyy").parse("01-10-2006"));
 
-            /*
-             * Uncomment this and comment the next two assertion if
-             * CloudEventAttributesProvider is enabled in CloudeventDemoApplication
-             */
-//            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.SOURCE))
-//                    .isEqualTo("https://interface21.com/");
-//            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.TYPE))
-//                    .isEqualTo("com.interface21");
+			/*
+			 * Uncomment this and comment the next two assertion if
+			 * CloudEventAttributesProvider is enabled in CloudeventDemoApplication
+			 */
+			// assertThat(response.getHeaders().getFirst("ce-" +
+			// MutableCloudEventAttributes.SOURCE))
+			// .isEqualTo("https://interface21.com/");
+			// assertThat(response.getHeaders().getFirst("ce-" +
+			// MutableCloudEventAttributes.TYPE))
+			// .isEqualTo("com.interface21");
 
-            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.SOURCE))
-                    .isEqualTo("http://spring.io/application-application");
-            assertThat(response.getHeaders().getFirst("ce-" + MutableCloudEventAttributes.TYPE))
-                    .isEqualTo(SpringReleaseEvent.class.getName());
+			assertThat(response.getHeaders().getFirst("ce-" + CloudEventHeaderUtils.SOURCE))
+					.isEqualTo("http://spring.io/application-application");
+			assertThat(response.getHeaders().getFirst("ce-" + CloudEventHeaderUtils.TYPE))
+					.isEqualTo(SpringReleaseEvent.class.getName());
 		}
 	}
 
 	private HttpHeaders buildHeaders(MediaType contentType) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(contentType);
-		headers.set(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + MutableCloudEventAttributes.ID,
-				UUID.randomUUID().toString());
-		headers.set(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + MutableCloudEventAttributes.SOURCE,
-				"https://spring.io/");
-		headers.set(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + MutableCloudEventAttributes.SPECVERSION, "1.0");
-		headers.set(CloudEventAttributeUtils.HTTP_ATTR_PREFIX + MutableCloudEventAttributes.TYPE,
-				"org.springframework");
+		headers.set(CloudEventHeaderUtils.HTTP_ATTR_PREFIX + CloudEventHeaderUtils.ID, UUID.randomUUID().toString());
+		headers.set(CloudEventHeaderUtils.HTTP_ATTR_PREFIX + CloudEventHeaderUtils.SOURCE, "https://spring.io/");
+		headers.set(CloudEventHeaderUtils.HTTP_ATTR_PREFIX + CloudEventHeaderUtils.SPECVERSION, "1.0");
+		headers.set(CloudEventHeaderUtils.HTTP_ATTR_PREFIX + CloudEventHeaderUtils.TYPE, "org.springframework");
 		return headers;
 	}
 

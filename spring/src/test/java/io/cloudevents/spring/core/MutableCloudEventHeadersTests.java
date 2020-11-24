@@ -19,7 +19,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
+import io.cloudevents.CloudEvent;
 import io.cloudevents.SpecVersion;
+import io.cloudevents.core.builder.CloudEventBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,29 +30,35 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  *
  */
-public class MutableCloudEventAttributesTests {
+public class MutableCloudEventHeadersTests {
 
 	@Test
 	void testEmpty() throws Exception {
-		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(Collections.emptyMap());
-		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
-		assertThat(attributes.getId()).isNull();
+		MutableCloudEventHeaders attributes = new MutableCloudEventHeaders(Collections.emptyMap());
+		assertThat(attributes.getAttribute(CloudEventHeaderUtils.SPECVERSION)).isEqualTo(SpecVersion.V1);
+		assertThat(attributes.getAttribute(CloudEventHeaderUtils.ID)).isNull();
 	}
 
 	@Test
 	void testSetAttribute() throws Exception {
-		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(Collections.emptyMap());
-		attributes.setAttribute(MutableCloudEventAttributes.ID, "A1234-1234");
+		CloudEventBuilder builder = new MutableCloudEventHeaders(Collections.emptyMap()).getBuilder();
+		builder.withAttribute(CloudEventHeaderUtils.ID, "A1234-1234");
+		builder.withSource(URI.create("https://spring.io/"));
+		builder.withType("org.springframework");
+		CloudEvent attributes = builder.build();
 		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V1);
 		assertThat(attributes.getId()).isEqualTo("A1234-1234");
 	}
 
 	@Test
 	void testV03() throws Exception {
-		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
-				Collections.singletonMap(MutableCloudEventAttributes.SPECVERSION, SpecVersion.V03));
-		attributes.setAttribute(MutableCloudEventAttributes.ID, "A1234-1234");
-		attributes.setAttribute(MutableCloudEventAttributes.SCHEMAURL, "https://schema.spring.io/ce-0.3");
+		CloudEventBuilder builder = new MutableCloudEventHeaders(
+				Collections.singletonMap(CloudEventHeaderUtils.SPECVERSION, SpecVersion.V03)).getBuilder();
+		builder.withAttribute(CloudEventHeaderUtils.ID, "A1234-1234");
+		builder.withAttribute(CloudEventHeaderUtils.SCHEMAURL, "https://schema.spring.io/ce-0.3");
+		builder.withSource(URI.create("https://spring.io/"));
+		builder.withType("org.springframework");
+		CloudEvent attributes = builder.build();
 		assertThat(attributes.getSpecVersion()).isEqualTo(SpecVersion.V03);
 		assertThat(attributes.getId()).isEqualTo("A1234-1234");
 		assertThat(attributes.getDataSchema().toString()).isEqualTo("https://schema.spring.io/ce-0.3");
@@ -58,13 +66,13 @@ public class MutableCloudEventAttributesTests {
 
 	@Test
 	void testV03MapWithExplicitSchema() throws Exception {
-		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
-				Collections.singletonMap(MutableCloudEventAttributes.SPECVERSION, SpecVersion.V03));
-		attributes.setId("A1234-1234");
-		attributes.setSource(URI.create("https://spring.io/"));
-		attributes.setType("org.springframework");
-		attributes.setDataSchema(URI.create("https://schema.spring.io/ce-0.3"));
-		Map<String, Object> headers = attributes.toMap("ce-");
+		CloudEventBuilder attributes = new MutableCloudEventHeaders(
+				Collections.singletonMap(CloudEventHeaderUtils.SPECVERSION, SpecVersion.V03)).getBuilder();
+		attributes.withId("A1234-1234");
+		attributes.withSource(URI.create("https://spring.io/"));
+		attributes.withType("org.springframework");
+		attributes.withDataSchema(URI.create("https://schema.spring.io/ce-0.3"));
+		Map<String, Object> headers = CloudEventHeaderUtils.toMap(attributes.build(), "ce-");
 		assertThat(headers.get("ce-specversion")).isEqualTo("0.3");
 		assertThat(headers.get("ce-source")).isEqualTo("https://spring.io/");
 		assertThat(headers.get("ce-type")).isEqualTo("org.springframework");
@@ -73,13 +81,13 @@ public class MutableCloudEventAttributesTests {
 
 	@Test
 	void testV03MapWithAttributeSchema() throws Exception {
-		MutableCloudEventAttributes attributes = new MutableCloudEventAttributes(
-				Collections.singletonMap(MutableCloudEventAttributes.SPECVERSION, SpecVersion.V03));
-		attributes.setId("A1234-1234");
-		attributes.setSource(URI.create("https://spring.io/"));
-		attributes.setType("org.springframework");
-		attributes.setAttribute(MutableCloudEventAttributes.SCHEMAURL, "https://schema.spring.io/ce-0.3");
-		Map<String, Object> headers = attributes.toMap("ce-");
+		CloudEventBuilder attributes = new MutableCloudEventHeaders(
+				Collections.singletonMap(CloudEventHeaderUtils.SPECVERSION, SpecVersion.V03)).getBuilder();
+		attributes.withId("A1234-1234");
+		attributes.withSource(URI.create("https://spring.io/"));
+		attributes.withType("org.springframework");
+		attributes.withAttribute(CloudEventHeaderUtils.SCHEMAURL, "https://schema.spring.io/ce-0.3");
+		Map<String, Object> headers = CloudEventHeaderUtils.toMap(attributes.build(), "ce-");
 		assertThat(headers.get("ce-specversion")).isEqualTo("0.3");
 		assertThat(headers.get("ce-source")).isEqualTo("https://spring.io/");
 		assertThat(headers.get("ce-type")).isEqualTo("org.springframework");

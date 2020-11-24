@@ -16,27 +16,25 @@
 
 package io.cloudevents.spring.core;
 
-import io.cloudevents.CloudEventAttributes;
+import io.cloudevents.CloudEventContext;
 
 /**
  * Strategy that should be implemented by the user to help with outgoing Cloud Event
- * attributes.
+ * headers. <br>
  * <br>
- * <br>
- * NOTE: The provided `attributes` may or may not be initialized with default values,
- * so it is the responsibility of the user to ensure that all required Cloud Events
+ * NOTE: The provided `attributes` may or may not be initialized with default values, so
+ * it is the responsibility of the user to ensure that all required Cloud Events
  * attributes are set. That said, various Spring frameworks which utilize this interface
  * will ensure that the 'provided' attributes are initialized with default values, leaving
- * to responsible to only set the attributes you need.
- * <br>
+ * to responsible to only set the attributes you need. <br>
  * Once implemented, simply configure it as a bean and the framework will invoke it before
  * the outbound Cloud Event Message is finalized.
  *
  * <pre>
  * &#64;Bean
- * public CloudEventAttributesProvider cloudEventAttributesProvider() {
+ * public CloudEventHeadersProvider cloudEventHeadersProvider() {
  * 	return attributes -&gt;
- *		CloudEventAttributeUtils.get(attributes).setSource("https://interface21.com/").setType("com.interface21");
+ *		CloudEventHeaderUtils.fromAttributes(attributes).withSource("https://interface21.com/").withType("com.interface21").build();
  * }
  * </pre>
  *
@@ -45,12 +43,12 @@ import io.cloudevents.CloudEventAttributes;
  * @since 2.0
  */
 @FunctionalInterface
-public interface CloudEventAttributesProvider {
+public interface CloudEventHeadersProvider {
 
 	/**
-	 * @param attributes instance of {@link CloudEventAttributes}
-	 * @return instance of modified {@link CloudEventAttributes}
+	 * @param attributes instance of {@link CloudEventContext}
+	 * @return modified {@link CloudEventContext}
 	 */
-	CloudEventAttributes getOutputAttributes(CloudEventAttributes attributes);
+	CloudEventContext getOutputHeaders(CloudEventContext attributes);
 
 }

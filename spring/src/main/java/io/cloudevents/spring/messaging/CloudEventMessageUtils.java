@@ -21,10 +21,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.cloudevents.CloudEvent;
 import io.cloudevents.CloudEventAttributes;
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.CloudEventAttributesProvider;
-import io.cloudevents.spring.core.MutableCloudEventAttributes;
+import io.cloudevents.core.builder.CloudEventBuilder;
+import io.cloudevents.spring.core.CloudEventHeaderUtils;
+import io.cloudevents.spring.core.CloudEventHeadersProvider;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -57,23 +58,23 @@ public final class CloudEventMessageUtils {
 	@SuppressWarnings("unchecked")
 	public static Message<?> toBinary(Message<?> inputMessage, MessageConverter messageConverter) {
 		Map<String, Object> headers = inputMessage.getHeaders();
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(headers);
-
+		Map<String, Object> attributes = CloudEventHeaderUtils.toCanonical(headers);
+		String inputContentType = (String) attributes.get(CloudEventHeaderUtils.DATACONTENTTYPE);
 		// first check the obvious and see if content-type is `cloudevents`
-		if (!attributes.isValidCloudEvent() && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
+		if (!CloudEventHeaderUtils.isValidCloudEvent(attributes) && headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
 			MimeType contentType = contentTypeResolver.resolve(inputMessage.getHeaders());
-			if (contentType.getType().equals(CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS.getType()) && contentType
-					.getSubtype().startsWith(CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS.getSubtype())) {
+			if (contentType.getType().equals(CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS.getType()) && contentType
+					.getSubtype().startsWith(CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS.getSubtype())) {
 
-				String dataContentType = StringUtils.hasText(attributes.getDataContentType())
-						? attributes.getDataContentType() : MimeTypeUtils.APPLICATION_JSON_VALUE;
+				String dataContentType = StringUtils.hasText(inputContentType) ? inputContentType
+						: MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 				String suffix = contentType.getSubtypeSuffix();
 				MimeType cloudEventDeserializationContentType = MimeTypeUtils
 						.parseMimeType(contentType.getType() + "/" + suffix);
 				Message<?> cloudEventMessage = MessageBuilder.fromMessage(inputMessage)
 						.setHeader(MessageHeaders.CONTENT_TYPE, cloudEventDeserializationContentType)
-						.setHeader(MutableCloudEventAttributes.DATACONTENTTYPE, dataContentType).build();
+						.setHeader(CloudEventHeaderUtils.DATACONTENTTYPE, dataContentType).build();
 				Map<String, Object> structuredCloudEvent = (Map<String, Object>) messageConverter
 						.fromMessage(cloudEventMessage, Map.class);
 				Message<?> binaryCeMessage = buildBinaryMessageFromStructuredMap(structuredCloudEvent,
@@ -81,9 +82,9 @@ public final class CloudEventMessageUtils {
 				return binaryCeMessage;
 			}
 		}
-		else if (StringUtils.hasText(attributes.getDataContentType())) {
-			return MessageBuilder.fromMessage(inputMessage)
-					.setHeader(MessageHeaders.CONTENT_TYPE, attributes.getDataContentType()).build();
+		else if (StringUtils.hasText(inputContentType)) {
+			return MessageBuilder.fromMessage(inputMessage).setHeader(MessageHeaders.CONTENT_TYPE, inputContentType)
+					.build();
 		}
 		return inputMessage;
 	}
@@ -98,28 +99,27 @@ public final class CloudEventMessageUtils {
 	 * @param message instance of input {@link Message}.
 	 * @param provider instance of CloudEventAttributesProvider.
 	 * @return an instance of {@link CloudEventAttributes} as
-	 * {@link MutableCloudEventAttributes}
+	 * {@link MutableCloudEventHeaders}
 	 */
-	public static MutableCloudEventAttributes getOutputAttributes(Message<?> message,
-			CloudEventAttributesProvider provider) {
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(message.getHeaders())
-				.setId(message.getHeaders().getId().toString())
-				.setType(message.getPayload().getClass().getName().getClass().getName());
-		return CloudEventAttributeUtils.toMutable(provider.getOutputAttributes(attributes));
+	public static CloudEventBuilder getOutputAttributes(Message<?> message, CloudEventHeadersProvider provider) {
+		CloudEventBuilder attributes = CloudEventHeaderUtils.fromMap(message.getHeaders())
+				.withId(message.getHeaders().getId().toString())
+				.withType(message.getPayload().getClass().getName().getClass().getName());
+		return CloudEventBuilder.fromContext(provider.getOutputHeaders(attributes.build()));
 	}
 
 	private static Message<?> buildBinaryMessageFromStructuredMap(Map<String, Object> structuredCloudEvent,
 			MessageHeaders originalHeaders) {
-		MutableCloudEventAttributes attributes = CloudEventAttributeUtils.toAttributes(structuredCloudEvent);
-		Object payload = attributes.getAttribute(CloudEventAttributeUtils.DATA);
+		Map<String, Object> map = CloudEventHeaderUtils.toCanonical(structuredCloudEvent);
+		Object payload = map.get(CloudEventHeaderUtils.DATA);
 		if (payload == null) {
 			payload = Collections.emptyMap();
 		}
+		CloudEvent attributes = CloudEventHeaderUtils.fromMap(map).build();
 		return MessageBuilder.withPayload(payload)
-				.copyHeaders(attributes.toMap(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX))
+				.copyHeaders(CloudEventHeaderUtils.toMap(attributes, CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX))
 				.copyHeaders(originalHeaders)
-				.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.ID,
-						attributes.getId())
+				.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.ID, attributes.getId())
 				.build();
 	}
 

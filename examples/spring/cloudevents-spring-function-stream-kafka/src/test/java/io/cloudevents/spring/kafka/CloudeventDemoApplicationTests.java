@@ -20,8 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import io.cloudevents.spring.core.CloudEventAttributeUtils;
-import io.cloudevents.spring.core.MutableCloudEventAttributes;
+import io.cloudevents.spring.core.CloudEventHeaderUtils;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringApplication;
@@ -51,13 +50,12 @@ public class CloudeventDemoApplicationTests {
 			String binaryEvent = "{\"releaseDate\":\"24-03-2004\", \"releaseName\":\"Spring Framework\", \"version\":\"1.0\"}";
 
 			Message<byte[]> message = MessageBuilder.withPayload(binaryEvent.getBytes(StandardCharsets.UTF_8))
-					.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.ID,
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.ID,
 							UUID.randomUUID().toString())
-					.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.SOURCE,
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SOURCE,
 							"https://spring.io/")
-					.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.SPECVERSION,
-							"1.0")
-					.setHeader(CloudEventAttributeUtils.DEFAULT_ATTR_PREFIX + MutableCloudEventAttributes.TYPE,
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.SPECVERSION, "1.0")
+					.setHeader(CloudEventHeaderUtils.DEFAULT_ATTR_PREFIX + CloudEventHeaderUtils.TYPE,
 							"org.springframework")
 					.setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0").build();
 
@@ -73,23 +71,17 @@ public class CloudeventDemoApplicationTests {
 		try (ConfigurableApplicationContext context = SpringApplication.run(CloudeventDemoApplication.class)) {
 			KafkaTemplate kafka = context.getBean(KafkaTemplate.class);
 
-			String structuredEvent = "{\n" +
-			        "    \"specversion\" : \"1.0\",\n" +
-			        "    \"type\" : \"org.springframework\",\n" +
-			        "    \"source\" : \"https://spring.io/\",\n" +
-			        "    \"id\" : \"A234-1234-1234\",\n" +
-			        "    \"datacontenttype\" : \"application/json\",\n" +
-			        "    \"data\" : {\n" +
-			        "        \"version\" : \"1.0\",\n" +
-			        "        \"releaseName\" : \"Spring Framework\",\n" +
-			        "        \"releaseDate\" : \"24-03-2004\"\n" +
-			        "    }\n" +
-			        "}";
+			String structuredEvent = "{\n" + "    \"specversion\" : \"1.0\",\n"
+					+ "    \"type\" : \"org.springframework\",\n" + "    \"source\" : \"https://spring.io/\",\n"
+					+ "    \"id\" : \"A234-1234-1234\",\n" + "    \"datacontenttype\" : \"application/json\",\n"
+					+ "    \"data\" : {\n" + "        \"version\" : \"1.0\",\n"
+					+ "        \"releaseName\" : \"Spring Framework\",\n" + "        \"releaseDate\" : \"24-03-2004\"\n"
+					+ "    }\n" + "}";
 
 			System.out.println(structuredEvent);
 			Message<byte[]> message = MessageBuilder.withPayload(structuredEvent.getBytes(StandardCharsets.UTF_8))
 					.setHeader(MessageHeaders.CONTENT_TYPE,
-							CloudEventAttributeUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
+							CloudEventHeaderUtils.APPLICATION_CLOUDEVENTS_VALUE + "+json")
 					.setHeader(KafkaHeaders.TOPIC, "pojoToPojo-in-0").build();
 
 			ListenableFuture<SendResult<String, String>> future = kafka.send(message);
